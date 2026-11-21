@@ -1,9 +1,11 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
+import Ikona from "../wniosek/Ikona.jsx";
 
-// Pasek nawigacji przewodnika (widoczny po zalogowaniu) z ikoną ? i profilem
+// Jedno menu po zalogowaniu — wszystko kręci się wokół rodzicielstwa
 const ZAKLADKI = [
-  ["Pulpit", "/przewodnik/pulpit"],
+  ["Moje konto", "/przewodnik/pulpit"],
+  ["Karta ciąży", "/przewodnik/karta-ciazy"],
   ["Moja ścieżka", "/przewodnik/sciezka"],
   ["Świadczenia", "/przewodnik/swiadczenia"],
   ["Kalkulator", "/przewodnik/kalkulator"],
@@ -17,12 +19,14 @@ export default function PasekModulu() {
   const inicjaly = profil ? `${profil.imie[0]}${profil.nazwisko[0]}` : "?";
 
   return (
-    <div className="modul-pasek">
+    <header className="modul-pasek">
       <div className="wrap modul-in">
-        <Link to="/przewodnik/pulpit" className="modul-nazwa">Przewodnik rodzica</Link>
-        <nav className="modul-zakladki" aria-label="Przewodnik">
+        <Link to="/przewodnik/pulpit" className="modul-znak" aria-label="Moje konto — strona główna">
+          <Ikona n="wozek" rozmiar={22} />
+        </Link>
+        <nav className="modul-zakladki" aria-label="Menu konta">
           {ZAKLADKI.map(([n, d]) => (
-            <NavLink key={d} to={d} className={n === "Kalkulator" ? "wyroznij" : ""}>{n}</NavLink>
+            <NavLink key={d} to={d}>{n}</NavLink>
           ))}
         </nav>
         <button
@@ -31,8 +35,8 @@ export default function PasekModulu() {
           title="Pomoc i przewodnik"
           onClick={() => setPrzewodnikOtwarty(true)}
         >?</button>
-        <button className="awatar" title="Wyloguj (symulacja)" onClick={wyloguj}>{inicjaly}</button>
+        <button className="awatar" title="Wyloguj (symulacja)" aria-label={`Wyloguj ${profil?.imie || ""}`} onClick={wyloguj}>{inicjaly}</button>
       </div>
-    </div>
+    </header>
   );
 }

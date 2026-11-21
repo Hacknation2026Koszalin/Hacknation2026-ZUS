@@ -116,8 +116,9 @@ export const POLA = [
     etykieta: "Przewidywana data porodu",
     zalezyOd: ["powod", "urodzone"], widoczne: przedPorodem,
     nieDotyczy: "Dotyczy tylko osoby, która jest w ciąży.",
-    podpowiedz:
-      "Wpisz datę z zaświadczenia od lekarza lub położnej. Od niej liczymy, od kiedy najwcześniej możesz zacząć zasiłek.",
+    podpowiedz: (w, ctx) =>
+      (ctx.karta && w.termin === ctx.karta.terminPorodu ? "Wpisaliśmy datę z Twojej karty ciąży — sprawdź, czy się zgadza. " : "Wpisz datę z zaświadczenia od lekarza lub położnej. ") +
+      "Od niej liczymy, od kiedy najwcześniej możesz zacząć zasiłek.",
     waliduj: (v, w, ctx) => (v < ctx.dzis ? "Przewidywana data porodu nie może być w przeszłości." : null),
   },
   {
@@ -165,7 +166,7 @@ export const POLA = [
       { v: "5", t: "5 i więcej" },
     ],
     podpowiedz:
-      "Od tego zależy długość zasiłku: 1 dziecko — 20 tygodni, bliźnięta — 31, trojaczki — 33, czworaczki — 35, pięcioro i więcej — 37 tygodni.",
+      (w, ctx) => (ctx.karta && w.liczbaDzieci === String(ctx.karta.liczbaDzieci) ? "Wpisaliśmy liczbę z karty ciąży. " : "") + "Od tego zależy długość zasiłku: 1 dziecko — 20 tygodni, bliźnięta — 31, trojaczki — 33, czworaczki — 35, pięcioro i więcej — 37 tygodni.",
   },
 
   // ---------- Część 5 ----------

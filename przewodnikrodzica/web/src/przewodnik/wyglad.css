@@ -1,0 +1,281 @@
+/* =====================================================================
+   NOWY WYGLĄD STREFY KONTA — gradient jak w identyfikacji ZUS
+   (żółto-limonkowy → zielony #8FD201 → turkus → niebieski #025AC4)
+   Zasada czytelności: biały tekst tylko na niebieskim, na zielonym/żółtym — ciemny.
+   ===================================================================== */
+.modul {
+  --green: #025ac4;          /* nadpisujemy zielony serwisu na niebieski w całej strefie konta */
+  --green-dark: #01489c;
+  --green-soft: #e6f0fb;
+  --m-bg: #f5f7fa;
+  --m-ink: #0b1f33;
+  --m-muted: #536271;
+  --m-line: #d9e1ea;
+  --m-lime: #eaf205;
+  --m-green: #8fd201;
+  --m-blue: #025ac4;
+  --m-grad: linear-gradient(120deg, #eaf205 0%, #8fd201 30%, #1fb0a6 62%, #0b86d6 82%, #025ac4 100%);
+  background: var(--m-bg);
+  color: var(--m-ink);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  min-height: 100vh;
+}
+.modul a { color: var(--m-blue); }
+
+/* ---------- pasek menu ---------- */
+.modul .modul-pasek { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 0; }
+.modul .modul-pasek::after { content: ""; display: block; height: 3px; background: var(--m-grad); }
+.modul .modul-in { min-height: 64px; gap: 12px; }
+.modul-znak { flex: none; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--m-grad); color: var(--m-ink) !important; }
+.modul .modul-zakladki { gap: 2px; scrollbar-width: none; }
+.modul .modul-zakladki a { padding: 9px 14px; border-radius: 999px; color: var(--m-ink); font-weight: 600; font-size: 15px; transition: background-color .15s ease-out; }
+.modul .modul-zakladki a:hover { background: #eef3f9; }
+.modul .modul-zakladki a.active { background: var(--green-soft); color: var(--m-blue); }
+.modul .pomoc { border-color: var(--m-blue); color: var(--m-blue); }
+.modul .awatar { border: 0; background: linear-gradient(135deg, #0b86d6, #025ac4); color: #fff; }
+.modul .pomoc.pulsuje { animation: pulsNieb 1.2s ease 2; }
+@keyframes pulsNieb { 0%, 100% { box-shadow: 0 0 0 0 rgba(2, 90, 196, .5); } 50% { box-shadow: 0 0 0 10px rgba(2, 90, 196, 0); } }
+.modul .wn-hud { top: 64px; }
+.modul .sw-spis { top: 88px; }
+.modul-stopka { background: var(--m-bg, #f5f7fa); color: #536271; font-size: 13px; text-align: center; padding: 28px 0 36px; }
+
+/* ---------- HERO ---------- */
+.mkhero { position: relative; overflow: hidden; color: #fff; padding: 48px 0 130px; }
+.mkhero-tlo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mkhero-fale { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 110px; }
+.mkhero-in { position: relative; display: grid; grid-template-columns: 1fr 1.05fr; gap: 32px; align-items: center; min-height: 390px; }
+/* licznik dni do kolejnego wniosku (zamiast kół o ciąży) */
+.licznik { position: relative; height: 400px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+.licznik-kolo { position: relative; width: 330px; height: 330px; margin-left: 4%; border-radius: 50%; background: #fff; color: var(--m-ink); display: grid; place-items: center; box-shadow: 0 24px 60px rgba(2, 40, 100, .28); animation: pyk .5s ease-out both; }
+.licznik-tarcza { position: absolute; inset: 14px; width: calc(100% - 28px); height: calc(100% - 28px); }
+.licznik-srodek { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--m-blue); }
+.licznik-liczba { font-size: 112px; font-weight: 800; line-height: .95; letter-spacing: -.04em; color: var(--m-blue); background: linear-gradient(140deg, #8fd201 5%, #025ac4 65%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-variant-numeric: tabular-nums; }
+.licznik-dni { font-size: 22px; font-weight: 800; color: var(--m-ink); }
+.licznik-pod { font-size: 15px; color: var(--m-muted); max-width: 170px; }
+.modul .licznik-wstega { position: relative; margin: -46px 0 0 calc(4% + 120px); display: flex; align-items: center; gap: 14px; background: #fff; color: var(--m-ink); text-decoration: none; border-radius: 999px; padding: 12px 26px 12px 12px; box-shadow: 0 16px 40px rgba(2, 40, 100, .28); max-width: 420px; animation: pyk .5s .15s ease-out both; transition: transform .15s ease-out; }
+.modul .licznik-wstega:hover { transform: translateY(-2px); }
+.licznik-wstega-ikona { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: #b42318; color: #fff; }
+.licznik-wstega small { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #b42318; }
+.licznik-wstega b { display: block; font-size: 17px; line-height: 1.25; }
+.licznik-wstega em { display: block; font-style: normal; font-size: 14px; color: var(--m-muted); }
+.mkhero-tekst h1 { font-size: 64px; line-height: 1.04; font-weight: 800; letter-spacing: -.02em; margin: 16px 0 14px; color: #fff; }
+.mkhero-etap { background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .45); color: #fff; border-radius: 999px; padding: 7px 16px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.mkhero-etap span { opacity: .8; font-weight: 400; text-decoration: underline; }
+.mkhero-lead { font-size: 20px; line-height: 1.55; max-width: 520px; color: #eaf3ff; margin: 0; }
+.mkhero-lead b { color: #fff; }
+.mkhero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.h-btn { display: inline-flex; align-items: center; min-height: 52px; padding: 0 26px; border-radius: 999px; font-weight: 700; font-size: 16px; text-decoration: none; transition: transform .15s ease-out, box-shadow .15s ease-out; }
+.h-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 0, 0, .18); }
+.h-btn:focus-visible, .mkhero-etap:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.modul .h-btn-bialy { background: #fff; color: var(--m-blue); }
+.modul .h-btn-limonka { background: var(--m-green); color: var(--m-ink); }
+
+/* =====================================================================
+   PLAN — oś czasu w zygzaku z checklistą
+   ===================================================================== */
+.plan-kicker { display: inline-block; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--m-blue); }
+.plan-sekcja { padding: 16px 0 40px; }
+.plan-glowa { max-width: 720px; margin: 0 auto 24px; text-align: center; }
+.plan-glowa h2 { font-size: 44px; line-height: 1.1; letter-spacing: -.02em; margin: 8px 0 12px; }
+.plan-glowa p { color: var(--m-muted); font-size: 18px; margin: 0; }
+.plan-postep { display: flex; align-items: center; gap: 14px; max-width: 460px; margin: 20px auto 0; font-size: 15px; color: var(--m-muted); white-space: nowrap; }
+.plan-postep b { color: var(--m-ink); }
+.plan-postep-tor { flex: 1; height: 10px; border-radius: 999px; background: #e3eaf2; overflow: hidden; }
+.plan-postep-tor div { height: 100%; border-radius: 999px; background: var(--m-grad); transition: width .3s ease-out; }
+
+.plan { position: relative; list-style: none; padding: 20px 0 40px; margin: 0 auto; max-width: 1160px; }
+.plan::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; margin-left: -2px; border-radius: 4px; background: linear-gradient(180deg, #eaf205, #8fd201 25%, #1fb0a6 55%, #025ac4); }
+.plan-dzis { position: relative; display: flex; justify-content: center; margin-bottom: 28px; }
+.plan-dzis-kropka { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--m-blue); box-shadow: 0 0 0 6px rgba(2, 90, 196, .2); }
+.plan-dzis-txt { position: relative; z-index: 1; background: var(--m-blue); color: #fff; font-weight: 700; font-size: 15px; border-radius: 999px; padding: 8px 18px; }
+.plan-faza { position: relative; display: flex; justify-content: center; margin: 16px 0 28px; }
+.plan-faza span { position: relative; z-index: 1; background: var(--m-bg); border: 2px solid var(--m-blue); color: var(--m-blue); font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; border-radius: 999px; padding: 6px 18px; }
+
+.plan-krok { position: relative; display: grid; grid-template-columns: 1fr 112px 1fr; align-items: center; margin-bottom: 44px; }
+.plan-wezel { grid-column: 2; grid-row: 1; justify-self: center; z-index: 1; width: 84px; height: 84px; border-radius: 50%; background: #fff; border: 4px solid var(--m-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 0 0 8px var(--m-bg); }
+.plan-wezel b { font-size: 30px; font-weight: 800; }
+.plan-wezel span { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--m-muted); margin-top: 2px; }
+/* strona prawa: treść po prawej, duży napis po lewej — i odwrotnie */
+.plan-krok.prawo .plan-tresc { grid-column: 3; grid-row: 1; }
+.plan-krok.prawo .plan-bok { grid-column: 1; grid-row: 1; text-align: right; padding-right: 28px; }
+.plan-krok.lewo .plan-tresc { grid-column: 1; grid-row: 1; }
+.plan-krok.lewo .plan-bok { grid-column: 3; grid-row: 1; text-align: left; padding-left: 28px; }
+.plan-bok { display: flex; flex-direction: column; }
+.plan-za { font-size: 52px; font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--m-blue); background: linear-gradient(140deg, #8fd201, #025ac4 70%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.plan-bok-pod { font-size: 15px; color: var(--m-muted); margin-top: 6px; }
+
+.plan-tresc { position: relative; background: #fff; border-radius: 28px; padding: 26px 28px 22px; box-shadow: 0 14px 40px rgba(11, 31, 51, .08); }
+/* „dzióbek” w stronę osi */
+.plan-tresc::before { content: ""; position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; background: #fff; transform: rotate(45deg); border-radius: 4px; }
+.plan-krok.prawo .plan-tresc::before { left: -9px; }
+.plan-krok.lewo .plan-tresc::before { right: -9px; }
+.plan-znacznik { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; border-radius: 999px; padding: 4px 12px; background: var(--green-soft); color: var(--m-blue); }
+.plan-data { margin: 10px 0 2px; font-size: 15px; font-weight: 600; color: var(--m-muted); }
+.plan-data span { color: var(--m-ink); }
+.plan-tresc h3 { font-size: 24px; line-height: 1.25; margin: 0 0 6px; letter-spacing: -.01em; }
+.plan-opis { margin: 0; color: var(--m-muted); font-size: 16px; }
+.plan-lista { list-style: none; padding: 0; margin: 16px 0 0; border-top: 1px solid #edf1f5; }
+.plan-lista li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 12px 0; border-bottom: 1px solid #edf1f5; }
+.plan-lista li:last-child { border-bottom: 0; padding-bottom: 0; }
+.plan-lista label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; flex: 1 1 260px; }
+.plan-lista input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.plan-check { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid #9fb0c2; display: grid; place-items: center; color: transparent; background: #fff; margin-top: 1px; transition: background-color .15s ease-out, border-color .15s ease-out; }
+.plan-lista input:focus-visible + .plan-check { outline: 3px solid var(--m-blue); outline-offset: 2px; }
+.plan-lista .zrobione .plan-check { background: var(--m-green); border-color: var(--m-green); color: var(--m-ink); }
+.plan-zad { font-weight: 600; line-height: 1.4; }
+.plan-zad small { display: block; font-weight: 400; font-size: 14px; color: var(--m-muted); }
+.plan-lista .zrobione .plan-zad { color: var(--m-muted); text-decoration: line-through; text-decoration-color: rgba(83, 98, 113, .5); }
+.plan-lista .zrobione .plan-zad small { text-decoration: none; }
+.plan-auto { color: #3f6600 !important; font-weight: 600 !important; }
+.modul .plan-akcja { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; text-decoration: none; color: #fff; background: var(--m-blue); border-radius: 999px; padding: 8px 16px; white-space: nowrap; }
+.modul .plan-akcja:hover { background: #01489c; }
+
+/* rodzaje kroków */
+.plan-krok.szansa .plan-znacznik { background: #f2fadf; color: #3f6600; }
+.plan-krok.szansa .plan-wezel { border-color: var(--m-green); }
+.plan-krok.krytyczny .plan-wezel { border-color: #b42318; color: #b42318; }
+.plan-krok.krytyczny .plan-znacznik { background: #b42318; color: #fff; }
+.plan-krok.krytyczny .plan-tresc { box-shadow: 0 0 0 2px #b42318, 0 14px 40px rgba(180, 35, 24, .12); }
+.plan-krok.krytyczny .plan-za { background: none; -webkit-text-fill-color: #b42318; color: #b42318; }
+.plan-krok.porod .plan-wezel { width: 104px; height: 104px; border: 0; background: var(--m-grad); color: var(--m-ink); }
+.plan-krok.porod .plan-wezel span { color: var(--m-ink); }
+.plan-krok.porod .plan-tresc { background: linear-gradient(140deg, #f2fadf, #e6f0fb); }
+.plan-krok.porod .plan-tresc::before { background: #edf6e6; }
+.plan-krok.porod .plan-znacznik { background: var(--m-blue); color: #fff; }
+.plan-krok.pilne:not(.krytyczny) .plan-znacznik { background: #fff4e5; color: #b25e00; }
+.plan-krok.pilne .plan-wezel { animation: wezelPuls 1.8s ease-out infinite; }
+@keyframes wezelPuls { 0% { box-shadow: 0 0 0 8px var(--m-bg), 0 0 0 8px rgba(2, 90, 196, .35); } 100% { box-shadow: 0 0 0 8px var(--m-bg), 0 0 0 22px rgba(2, 90, 196, 0); } }
+.plan-krok.ok .plan-wezel { background: var(--m-green); border-color: var(--m-green); color: var(--m-ink); }
+.plan-krok.minelo { opacity: .55; }
+
+/* =====================================================================
+   PASY INFO — szerokie, na zmianę tekst/obraz
+   ===================================================================== */
+.pas { padding: 48px 0; }
+.pas-lewo { background: #fff; }
+.pas-in { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; align-items: center; }
+.pas-lewo .pas-in { grid-template-columns: 1fr 1.1fr; }
+.pas-tekst h2 { font-size: 38px; line-height: 1.15; letter-spacing: -.02em; margin: 8px 0 14px; }
+.pas-tekst p { font-size: 18px; color: var(--m-muted); margin: 0 0 18px; }
+.modul .pas-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 17px; text-decoration: none; }
+.modul .pas-link:hover { text-decoration: underline; }
+.pas-wizual { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 44px 48px; border-radius: 40px 40px 40px 120px; }
+.pas-kwota { background: linear-gradient(135deg, #025ac4, #023f8f); color: #fff; overflow: hidden; }
+.pas-kwota::after { content: ""; position: absolute; right: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(143, 210, 1, .55), rgba(143, 210, 1, 0) 70%); }
+.pas-kwota small { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #cfe0f7; }
+.pas-kwota b { font-size: 56px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.pas-kwota span { color: #cfe0f7; }
+.pas-karta { background: var(--m-bg); border-radius: 40px 40px 120px 40px; overflow: hidden; padding-top: 54px; }
+.pas-karta-pas { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: var(--m-grad); }
+.pas-karta small { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--m-blue); }
+.pas-karta b { font-size: 44px; font-weight: 800; letter-spacing: -.02em; }
+.pas-karta span { color: var(--m-muted); }
+.pas-karta-tor { height: 12px; border-radius: 999px; background: #e1e8f0; overflow: hidden; margin-top: 14px; }
+.pas-karta-tor div { height: 100%; border-radius: 999px; background: var(--m-grad); }
+
+/* ---------- KARTA CIĄŻY ---------- */
+.kc { padding-top: 32px; padding-bottom: 64px; }
+.kc-glowa { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.kc-glowa h1 { font-size: 36px; margin: 0 0 6px; }
+.kc-zrodlo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--m-muted); font-size: 15px; margin: 0; }
+.kc-sym { font-size: 12px; font-weight: 700; text-transform: uppercase; background: #eef2f6; border-radius: 999px; padding: 2px 8px; }
+.kc-akcje { display: flex; gap: 8px; flex-wrap: wrap; }
+.kc-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--m-line); background: #fff; color: var(--m-blue) !important; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+.kc-btn:hover { border-color: var(--m-blue); }
+.kc-btn[disabled] { opacity: .6; cursor: wait; }
+.kc-btn-glowny { background: var(--m-blue); border-color: var(--m-blue); color: #fff !important; }
+.kreci { animation: obrot 1s linear infinite; }
+.kc-dok { position: relative; background: #fff; border: 1px solid var(--m-line); border-radius: 26px; overflow: hidden; box-shadow: 0 24px 60px rgba(11, 31, 51, .10); }
+.kc-pas { height: 10px; background: var(--m-grad); }
+.kc-dok-glowa { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 28px 32px 12px; }
+.kc-etyk { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--m-blue); }
+.kc-dok-glowa h2 { font-size: 30px; margin: 4px 0; }
+.kc-dok-glowa p { margin: 0; color: var(--m-muted); }
+.kc-tydzien { text-align: right; }
+.kc-tydzien b { display: block; font-size: 56px; line-height: 1; font-weight: 800; color: var(--m-blue); background: linear-gradient(140deg, #8fd201 10%, #025ac4 70%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.kc-tydzien b small { font-size: 26px; }
+.kc-tydzien span { color: var(--m-muted); font-size: 14px; font-weight: 600; }
+.kc-kafle { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; padding: 16px 32px; }
+.kc-kafel { background: var(--m-bg); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.kc-kafel small { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--m-muted); }
+.kc-kafel b { font-size: 24px; line-height: 1.25; }
+.kc-kafel span { font-size: 14px; color: var(--m-muted); }
+.kc-kafel-glowny { background: linear-gradient(135deg, #eef77a, #8fd201); }
+.kc-kafel-glowny small, .kc-kafel-glowny span { color: #24400a; }
+.kc-kafel-glowny b { font-size: 28px; }
+.kc-odkryj { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0; padding: 6px 14px; border-radius: 999px; border: 2px dashed var(--m-blue); background: #fff; color: var(--m-blue); font: inherit; font-weight: 700; cursor: pointer; }
+.kc-odkryta { text-transform: capitalize; animation: pyk .45s ease-out; }
+.kc-link { background: none; border: 0; padding: 0; color: var(--m-blue); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+.kc-postep { padding: 4px 32px 0; }
+.kc-postep-tor { height: 12px; border-radius: 999px; background: #eef2f6; overflow: hidden; }
+.kc-postep-tor div { height: 100%; border-radius: 999px; background: var(--m-grad); }
+.kc-postep-opis { display: flex; justify-content: space-between; font-size: 13px; color: var(--m-muted); margin-top: 6px; }
+.kc-sekcje { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 40px; padding: 20px 32px 8px; }
+.kc-sekcje h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--m-muted); margin: 10px 0 8px; }
+.kc-dl { margin: 0; }
+.kc-dl div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid #edf1f5; }
+.kc-dl dt { color: var(--m-muted); }
+.kc-dl dd { margin: 0; font-weight: 700; }
+.kc-badania { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.kc-badania li { display: flex; gap: 10px; align-items: flex-start; }
+.kc-badania .ikona { flex: none; margin-top: 3px; border-radius: 50%; padding: 2px; }
+.kc-badania .ok .ikona { background: var(--m-green); color: var(--m-ink); }
+.kc-badania .plan .ikona { background: #fff4e5; color: #b25e00; }
+.kc-wizyty { grid-column: 1 / -1; }
+.kc-wizyty ol { list-style: none; padding: 0 0 0 18px; margin: 0; border-left: 3px solid; border-image: linear-gradient(#8fd201, #025ac4) 1; }
+.kc-wizyty li { position: relative; display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 8px 0; }
+.kc-wizyty li::before { content: ""; position: absolute; left: -26px; top: 13px; width: 13px; height: 13px; border-radius: 50%; background: #fff; border: 3px solid var(--m-blue); }
+.kc-w-data { font-weight: 700; }
+.kc-w-data small { display: block; font-weight: 400; color: var(--m-muted); font-size: 13px; }
+.kc-stopka { border-top: 1px dashed var(--m-line); margin-top: 16px; padding: 14px 32px; font-size: 13px; color: var(--m-muted); }
+.kc-prywatnosc { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--green-soft); border-radius: 18px; padding: 18px 22px; margin-top: 20px; color: var(--m-ink); }
+.kc-prywatnosc > .ikona { color: var(--m-blue); flex: none; }
+.kc-prywatnosc p { flex: 1 1 320px; margin: 0; }
+
+/* ---------- telefon / tablet ---------- */
+@media (max-width: 900px) {
+  .mkhero { padding: 28px 0 110px; background: linear-gradient(180deg, #eaf205 0%, #8fd201 14%, #1fb0a6 25%, #0b86d6 32%, #025ac4 40%, #023f8f 100%); }
+  .mkhero-tlo { display: none; }
+  .mkhero-in { grid-template-columns: 1fr; gap: 12px; min-height: 0; }
+  .licznik { height: auto; align-items: center; padding-bottom: 8px; }
+  .licznik-kolo { width: 260px; height: 260px; margin: 0; }
+  .licznik-liczba { font-size: 84px; }
+  .modul .licznik-wstega { margin: -34px 0 0; max-width: 100%; }
+  /* oś: linia po lewej, wszystkie kroki po prawej */
+  .plan::before { left: 30px; }
+  .plan-dzis, .plan-faza { justify-content: flex-start; padding-left: 0; }
+  .plan-dzis-kropka { left: 30px; }
+  .plan-dzis-txt, .plan-faza span { margin-left: 52px; }
+  .plan-krok { grid-template-columns: 64px 1fr; gap: 0 12px; align-items: start; }
+  .plan-krok .plan-wezel { grid-column: 1 !important; width: 60px; height: 60px; border-width: 3px; box-shadow: 0 0 0 6px var(--m-bg); }
+  .plan-wezel b { font-size: 22px; }
+  .plan-krok.porod .plan-wezel { width: 64px; height: 64px; }
+  .plan-krok .plan-tresc { grid-column: 2 !important; }
+  .plan-krok .plan-bok { display: none; }
+  .plan-krok .plan-tresc::before { left: -9px !important; right: auto !important; top: 30px; }
+  .plan-glowa h2 { font-size: 32px; }
+  .pas-in, .pas-lewo .pas-in { grid-template-columns: 1fr; gap: 28px; }
+  .pas-lewo .pas-wizual { order: 2; }
+  .pas-tekst h2 { font-size: 30px; }
+  .pas-kwota b { font-size: 42px; }
+  .mkhero-tekst h1 { font-size: 44px; }
+  .mkhero-lead { font-size: 18px; }
+  .kc-kafle { grid-template-columns: 1fr 1fr; padding: 16px 18px; }
+  .kc-dok-glowa, .kc-postep, .kc-sekcje, .kc-stopka { padding-left: 18px; padding-right: 18px; }
+  .kc-sekcje { grid-template-columns: 1fr; }
+  .modul .wn-hud { top: 64px; }
+}
+@media (max-width: 520px) {
+  .plan-tresc { padding: 20px 18px 16px; border-radius: 22px; }
+  .plan-tresc h3 { font-size: 20px; }
+  .pas-wizual { padding: 36px 28px; }
+  .kc-kafle { grid-template-columns: 1fr; }
+  .kc-dok-glowa { flex-direction: column; align-items: flex-start; }
+  .kc-tydzien { text-align: left; }
+  .kc-wizyty li { grid-template-columns: 1fr; gap: 0; }
+}
+
+@media print {
+  .modul-pasek, .modul-stopka, .kc-akcje, .kc-prywatnosc { display: none !important; }
+  .kc-dok { box-shadow: none; }
+}
