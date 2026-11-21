@@ -13,11 +13,13 @@ import Swiadczenia from "./ekrany/Swiadczenia.jsx";
 import ZasilekMacierzynski from "./ekrany/ZasilekMacierzynski.jsx";
 import MojeSprawy from "./ekrany/MojeSprawy.jsx";
 import Urzednik from "./ekrany/Urzednik.jsx";
+import KartaCiazy from "./ekrany/KartaCiazy.jsx";
 import WniosekZAM from "./wniosek/WniosekZAM.jsx";
 import PasekModulu from "./komponenty/PasekModulu.jsx";
 import PrzewodnikPowitalny from "./komponenty/PrzewodnikPowitalny.jsx";
 import "./przewodnik.css";
 import "./wniosek/wniosek.css";
+import "./wyglad.css";
 
 // Strony dostępne tylko po zalogowaniu: pasek modułu + ? + przewodnik ponownie
 function Zalogowany({ children }) {
@@ -30,7 +32,7 @@ function Zalogowany({ children }) {
   if (!zalogowany) return <Navigate to="/przewodnik" replace />;
   if (!onboardingZakonczony) return <Navigate to="/przewodnik/witaj" replace />;
   return (
-    <>
+    <div className="modul">
       <PasekModulu />
       {children}
       {przewodnikOtwarty && (
@@ -39,7 +41,7 @@ function Zalogowany({ children }) {
           onZamknij={() => setPrzewodnikOtwarty(false)}
         />
       )}
-    </>
+    </div>
   );
 }
 
@@ -54,8 +56,16 @@ export default function PrzewodnikApp() {
         <Route path="mobywatel" element={<Mobywatel />} />
         <Route path="zgoda" element={<Zgoda />} />
         <Route path="pobieranie" element={<Pobieranie />} />
-        <Route path="witaj" element={<Witaj />} />
+        <Route
+          path="witaj"
+          element={
+            <div className="modul">
+              <Witaj />
+            </div>
+          }
+        />
         <Route path="pulpit" element={chron(<Pulpit />)} />
+        <Route path="karta-ciazy" element={chron(<KartaCiazy />)} />
         <Route
           path="sciezka"
           element={chron(<WBudowie tytul="Moja ścieżka" />)}
@@ -73,7 +83,14 @@ export default function PrzewodnikApp() {
         <Route path="sprawy" element={chron(<MojeSprawy />)} />
         <Route path="wsparcie" element={chron(<WBudowie tytul="Wsparcie" />)} />
         {/* Tryb demo: widok urzędnika (bez logowania obywatela) */}
-        <Route path="urzednik" element={<Urzednik />} />
+        <Route
+          path="urzednik"
+          element={
+            <div className="modul">
+              <Urzednik />
+            </div>
+          }
+        />
         <Route path="*" element={<Navigate to="/przewodnik" replace />} />
       </Routes>
     </SesjaProvider>
