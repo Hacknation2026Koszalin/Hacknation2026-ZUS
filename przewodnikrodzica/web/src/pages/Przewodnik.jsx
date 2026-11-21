@@ -1,10 +1,8 @@
-
 import { Link } from "react-router-dom";
 
 export default function Przewodnik() {
   return (
     <main className="parent-guide">
-
       {/* NAWIGACJA OKRUSZKOWA */}
       <div className="wrap">
         <nav
@@ -15,15 +13,11 @@ export default function Przewodnik() {
 
           <span aria-hidden="true">/</span>
 
-          <Link to="/swiadczenia/zasilki">
-            Świadczenia
-          </Link>
+          <Link to="/swiadczenia/zasilki">Świadczenia</Link>
 
           <span aria-hidden="true">/</span>
 
-          <span aria-current="page">
-            Przewodnik młodego rodzica
-          </span>
+          <span aria-current="page">Przewodnik młodego rodzica</span>
         </nav>
       </div>
 
@@ -33,9 +27,7 @@ export default function Przewodnik() {
         aria-labelledby="parent-guide-title"
       >
         <div className="wrap parent-guide__layout">
-
           <div className="parent-guide__intro">
-
             <div className="parent-guide__eyebrow">
               <span aria-hidden="true" />
               DLA PRZYSZŁYCH I OBECNYCH RODZICÓW
@@ -50,11 +42,9 @@ export default function Przewodnik() {
             </h1>
 
             <p className="parent-guide__lead">
-              Sprawdź, jakie świadczenia mogą Ci
-              przysługiwać w ciąży i po narodzinach
-              dziecka. Dowiedz się, ile możesz otrzymać,
-              jakie dokumenty przygotować i kiedy
-              złożyć wniosek.
+              Sprawdź, jakie świadczenia mogą Ci przysługiwać w ciąży i po
+              narodzinach dziecka. Dowiedz się, ile możesz otrzymać, jakie
+              dokumenty przygotować i kiedy złożyć wniosek.
             </p>
 
             <div className="parent-guide__actions">
@@ -63,7 +53,6 @@ export default function Przewodnik() {
                 className="parent-guide__button"
               >
                 Zaloguj się przez mObywatel
-
                 <svg
                   width="19"
                   height="19"
@@ -91,32 +80,18 @@ export default function Przewodnik() {
                 aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="9" />
-                <path
-                  d="M12 11v5M12 7.5h.01"
-                  strokeLinecap="round"
-                />
+                <path d="M12 11v5M12 7.5h.01" strokeLinecap="round" />
               </svg>
-
-              Logowanie w wersji demonstracyjnej
-              jest symulowane.
+              Logowanie w wersji demonstracyjnej jest symulowane.
             </p>
-
           </div>
 
           {/* DEKORACYJNA CZĘŚĆ GRAFICZNA */}
-          <div
-            className="parent-guide__visual"
-            aria-hidden="true"
-          >
+          <div className="parent-guide__visual" aria-hidden="true">
             <div className="parent-guide__visual-back" />
 
             <div className="parent-guide__visual-main">
-              <svg
-                viewBox="0 0 430 430"
-                width="100%"
-                height="100%"
-                fill="none"
-              >
+              <svg viewBox="0 0 430 430" width="100%" height="100%" fill="none">
                 <circle
                   cx="215"
                   cy="215"
@@ -149,7 +124,6 @@ export default function Przewodnik() {
                 />
               </svg>
             </div>
-
           </div>
         </div>
       </section>
@@ -160,64 +134,48 @@ export default function Przewodnik() {
         aria-labelledby="parent-guide-how-title"
       >
         <div className="wrap">
-
           <div className="parent-guide__section-heading">
-            <h2 id="parent-guide-how-title">
-              Jak działa przewodnik?
-            </h2>
+            <h2 id="parent-guide-how-title">Jak działa przewodnik?</h2>
 
-            <p>
-              Trzy proste kroki, które pomogą Ci
-              uporządkować formalności.
-            </p>
+            <p>Trzy proste kroki, które pomogą Ci uporządkować formalności.</p>
           </div>
 
           <div className="parent-guide__steps">
-
             <div className="parent-guide__step">
-              <span className="parent-guide__step-number">
-                01
-              </span>
+              <span className="parent-guide__step-number">01</span>
 
               <h3>Opowiedz nam o swojej sytuacji</h3>
 
               <p>
-                Odpowiedz na kilka pytań dotyczących
-                zatrudnienia, ciąży lub narodzin dziecka.
+                Odpowiedz na kilka pytań dotyczących zatrudnienia, ciąży lub
+                narodzin dziecka.
               </p>
             </div>
 
             <div className="parent-guide__step">
-              <span className="parent-guide__step-number">
-                02
-              </span>
+              <span className="parent-guide__step-number">02</span>
 
               <h3>Sprawdź przysługujące świadczenia</h3>
 
               <p>
-                Zobacz, jakie zasiłki mogą Ci przysługiwać
-                i poznaj ich orientacyjną wysokość.
+                Zobacz, jakie zasiłki mogą Ci przysługiwać i poznaj ich
+                orientacyjną wysokość.
               </p>
             </div>
 
             <div className="parent-guide__step">
-              <span className="parent-guide__step-number">
-                03
-              </span>
+              <span className="parent-guide__step-number">03</span>
 
               <h3>Przygotuj potrzebne dokumenty</h3>
 
               <p>
-                Dowiedz się, jakie wnioski przygotować,
-                gdzie je złożyć i jakich terminów pilnować.
+                Dowiedz się, jakie wnioski przygotować, gdzie je złożyć i jakich
+                terminów pilnować.
               </p>
             </div>
-
           </div>
-
         </div>
       </section>
-
     </main>
   );
 }
