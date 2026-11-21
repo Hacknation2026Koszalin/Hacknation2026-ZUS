@@ -1,0 +1,162 @@
+/* Style kalkulatora – korzystają ze zmiennych i klas aplikacji (karta, muted, status, link…). */
+.kalk-zestawy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 16px 0 24px;
+}
+.kalk-chip {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  opacity: 0.85;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.kalk-chip:hover {
+  opacity: 1;
+}
+
+.kalk-uklad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  align-items: start;
+}
+.kalk-formularz {
+  display: grid;
+  gap: 16px;
+}
+.kalk-sekcja {
+  border: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.kalk-sekcja legend {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.kalk-pole {
+  display: grid;
+  gap: 4px;
+  font-size: 0.9375rem;
+}
+.kalk-pole input[type="number"],
+.kalk-pole input[type="date"],
+.kalk-pole select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font: inherit;
+  border: 1px solid #9aa3ad;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+}
+.kalk-pole input[type="range"] {
+  width: 100%;
+}
+.kalk-rzad {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.kalk-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.9375rem;
+}
+.kalk-check input {
+  margin-top: 3px;
+}
+
+.kalk-radio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kalk-radio label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px solid #9aa3ad;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+}
+.kalk-radio label.aktywny {
+  border-color: currentColor;
+  font-weight: 600;
+}
+.kalk-radio input {
+  margin: 0;
+}
+
+.kalk-pole input:focus-visible,
+.kalk-chip:focus-visible,
+.kalk-radio input:focus-visible,
+.kalk-check input:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.kalk-sticky {
+  position: sticky;
+  top: 16px;
+}
+.kalk-duza {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+
+.kalk-tabela-wrap {
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.kalk-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.kalk-tabela th,
+.kalk-tabela td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid #c9ced4;
+  vertical-align: top;
+}
+.kalk-tabela th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.kalk-tabela td:nth-child(n + 4),
+.kalk-tabela th:nth-child(n + 4) {
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  .kalk-uklad {
+    grid-template-columns: 1fr;
+  }
+  .kalk-sticky {
+    position: static;
+  }
+  .kalk-wynik {
+    order: -1;
+  } /* wynik nad formularzem na telefonie */
+  .kalk-duza {
+    font-size: 1.75rem;
+  }
+}
