@@ -12,13 +12,13 @@ export default function Logowanie() {
           <span><b>Aplikacja mobilna ZUS</b><small>Skanuj kod QR za pomocą aplikacji mobilnej</small></span>
           <span aria-hidden="true">›</span>
         </button>
-        <Link to="/przewodnik" className="login-option">
+        <Link to="/przewodnik/logowanie" className="login-option">
           <span className="login-icon" aria-hidden="true">🛡️</span>
           <span><b>login.gov.pl</b><small>Profil zaufany, bankowość, mObywatel, e-Dowód lub eID</small></span>
           <span aria-hidden="true">›</span>
         </Link>
       </div>
-      <p className="muted small">Symulacja: kliknięcie „login.gov.pl” przeniesie do Przewodnika. Tu podepniecie ekrany logowania mObywatelem z planu podstron.</p>
+      <p className="muted small">Symulacja: kliknięcie „login.gov.pl” prowadzi do symulacji logowania mObywatelem w Przewodniku młodego rodzica.</p>
     </div>
   );
 }

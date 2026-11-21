@@ -51,3 +51,23 @@ Nie trzeba instalować nic nowego — używamy tylko react, react-dom i react-ro
 - Na górze każdej strony jest pasek „Prototyp na HackNation 2026 — to nie jest serwis ZUS”. Zostawcie go: strona naśladuje układ prawdziwego serwisu, więc musi być jasne, że to prototyp.
 - Nie używamy logo ani grafik ZUS — jest neutralny znak „Z”. Jeśli chcecie prawdziwe materiały, zapytajcie mentora ZUS.
 - Logowanie nie ma pól na hasło ani dane — to tylko symulacja kliknięć.
+
+## NOWE: logowanie mObywatel + przewodnik powitalny (folder `client-app/src/przewodnik/`)
+
+Ścieżka po kliknięciu „Zaloguj się przez mObywatel”:
+
+| Adres | Ekran | Co się dzieje |
+|---|---|---|
+| `/przewodnik` | Start | karta przewodnika, przycisk „Zaloguj się przez mObywatel” |
+| `/przewodnik/logowanie` | Wybór logowania | aktywny tylko mObywatel, reszta wyszarzona |
+| `/przewodnik/mobywatel` | Potwierdzenie w telefonie | kod QR + kod 6 cyfr; po 5 s albo po kliknięciu „Symulacja: potwierdziłam” → dalej |
+| `/przewodnik/zgoda` | Zgoda na dane | dane z mObywatela (GET `/api/symulacja/mobywatel`), „Zgadzam się” |
+| `/przewodnik/pobieranie` | Pobieranie z ZUS | 3 pozycje odhaczają się po kolei (GET `/api/symulacja/zus/{pesel}`) |
+| `/przewodnik/witaj` | Przewodnik powitalny | „Cześć, Anna! Na jakim jesteś etapie?” → 7 slajdów → „Gotowe!”; Pomiń, Wstecz, Dalej, kropki, strzałki na klawiaturze, Esc |
+| `/przewodnik/pulpit` | Pulpit | po zamknięciu przewodnik „wlatuje” do ikony ? (pulsuje 2 razy); ? otwiera przewodnik ponownie |
+
+- Stan logowania jest w `SesjaContext.jsx` (sessionStorage — znika po zamknięciu karty). Wylogowanie: kółko z inicjałami.
+- Dane osoby są zmyślone (Anna Testowa, PESEL z celowo błędną cyfrą kontrolną).
+- Teksty slajdów i etapów zmieniacie w `przewodnik/dane.js`.
+- Zakładki Moja ścieżka, Świadczenia, Kalkulator, Moje sprawy, Wsparcie mają na razie stronę „w budowie” (`WBudowie.jsx`) — podmieniacie je po kolei.
+- Usunięty stary plik `pages/Przewodnik.jsx` — skasujcie go też u siebie.
