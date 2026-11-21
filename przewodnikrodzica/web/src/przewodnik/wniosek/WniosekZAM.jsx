@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
-import { DANE_ZUS_ZAPAS, PROFIL_MOBYWATEL } from "../dane.js";
+import { DANE_ZUS_ZAPAS, KARTA_CIAZY, PROFIL_MOBYWATEL } from "../dane.js";
 import { CZESCI, POLA, tekstNieDotyczy, tekstPodpowiedzi } from "./formularz.js";
 import { blad, braki, czyWidoczne, czyWymagane, pokazWartosc, postep, widocznePola, wyczysc } from "./silnik.js";
 import { pobierzWnioski, wyslijWniosek } from "./wnioski.js";
@@ -71,13 +71,17 @@ export default function WniosekZAM() {
     () => ({
       profil: sesja.profil || PROFIL_MOBYWATEL,
       zus: sesja.zus || DANE_ZUS_ZAPAS,
+      karta: KARTA_CIAZY,
       dzis: new Date().toISOString().slice(0, 10),
     }),
     [sesja.profil, sesja.zus],
   );
 
   const szkic = wczytajSzkic();
-  const [w, setW] = useState(szkic?.w || {});
+  // Bez szkicu: termin porodu i liczbę dzieci bierzemy z karty ciąży
+  const [w, setW] = useState(
+    szkic?.w || (sesja.etap === "ciaza" || !sesja.etap ? { termin: KARTA_CIAZY.terminPorodu, liczbaDzieci: String(KARTA_CIAZY.liczbaDzieci) } : {}),
+  );
   const [pominiete, setPominiete] = useState(szkic?.pominiete || []);
   const [numer, setNumer] = useState(szkic?.numer || null); // numer przy poprawie
   const [uwagaUrzednika, setUwagaUrzednika] = useState(szkic?.uwaga || null);
@@ -199,7 +203,7 @@ export default function WniosekZAM() {
   };
 
   const odNowa = () => {
-    setW({});
+    setW(sesja.etap === "ciaza" || !sesja.etap ? { termin: KARTA_CIAZY.terminPorodu, liczbaDzieci: String(KARTA_CIAZY.liczbaDzieci) } : {});
     setPominiete([]);
     setNumer(null);
     setUwagaUrzednika(null);
@@ -237,7 +241,7 @@ export default function WniosekZAM() {
   const { gotowe, wszystkie } = postep(w, ctx);
   const brakujace = braki(w, ctx);
   const poleAkt = POLA.find((p) => p.id === aktywne);
-  const zaczety = Object.keys(w).length > 0;
+  const zaczety = Object.keys(w).some((k) => !['termin', 'liczbaDzieci'].includes(k));
 
   // ================= WIDOKI =================
   return (
