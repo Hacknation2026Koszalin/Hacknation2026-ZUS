@@ -71,3 +71,61 @@ Nie trzeba instalować nic nowego — używamy tylko react, react-dom i react-ro
 - Teksty slajdów i etapów zmieniacie w `przewodnik/dane.js`.
 - Zakładki Moja ścieżka, Świadczenia, Kalkulator, Moje sprawy, Wsparcie mają na razie stronę „w budowie” (`WBudowie.jsx`) — podmieniacie je po kolei.
 - Usunięty stary plik `pages/Przewodnik.jsx` — skasujcie go też u siebie.
+
+---
+
+## NOWE: wniosek o zasiłek macierzyński (przewodnik „jak w grze”)
+
+Nowe pliki (skopiuj do swojego projektu w te same miejsca):
+
+```
+client-app/src/przewodnik/wniosek/formularz.js   ← lista pól wniosku i reguły (TU zmieniasz treść)
+client-app/src/przewodnik/wniosek/silnik.js      ← co jest wymagane / co nie dotyczy
+client-app/src/przewodnik/wniosek/wnioski.js     ← wysyłanie do .NET (albo zapis w przeglądarce)
+client-app/src/przewodnik/wniosek/WniosekZAM.jsx ← cały przebieg: start → przewodnik → przegląd → podpis → wysłano
+client-app/src/przewodnik/wniosek/Papier.jsx     ← „papierowy” formularz
+client-app/src/przewodnik/wniosek/Ikona.jsx      ← ikony
+client-app/src/przewodnik/wniosek/wniosek.css    ← wygląd (kolory #025AC4 i #8FD201)
+client-app/src/przewodnik/ekrany/Swiadczenia.jsx
+client-app/src/przewodnik/ekrany/ZasilekMacierzynski.jsx
+client-app/src/przewodnik/ekrany/MojeSprawy.jsx
+client-app/src/przewodnik/ekrany/Urzednik.jsx
+```
+Zmienione: `PrzewodnikApp.jsx` (nowe adresy), `ekrany/Pulpit.jsx` (skróty), `przewodnikrodzica/Program.cs` (endpointy /api/wnioski).
+
+Adresy:
+- `/przewodnik/swiadczenia` → lista świadczeń
+- `/przewodnik/swiadczenia/zasilek-macierzynski` → opis + „Złóż wniosek”
+- `/przewodnik/swiadczenia/zasilek-macierzynski/wniosek` → wniosek z przewodnikiem
+- `/przewodnik/sprawy` → Moje sprawy
+- `/przewodnik/urzednik` → widok urzędnika (tryb demo)
+
+Przycisk „Pobierz wersję PDF” szuka pliku `client-app/public/formularze/ZAM.pdf`.
+Pobierz pusty wniosek ZAM ze strony zus.pl i wrzuć go tam (utwórz folder `public/formularze`).
+
+### Pokaz dla jury (2 okna obok siebie)
+1. Okno lewe: zaloguj się jako Anna → Świadczenia → Zasiłek macierzyński → Złóż wniosek → Prowadź mnie.
+2. Celowo kliknij „Nie wiem — pomiń” przy zaświadczeniu → na końcu zobaczysz „Zostało 1 pole”.
+3. Uzupełnij → przegląd → akceptuj → podpisz.
+4. Okno prawe: `/przewodnik/urzednik` → „Poproś o uzupełnienie”, zaznacz zaświadczenie, napisz wiadomość.
+5. Okno lewe: Moje sprawy samo się odświeży → „Popraw wniosek” → przewodnik prowadzi TYLKO po tym jednym polu.
+
+Działa bez backendu (zapis w przeglądarce). Z backendem wnioski trzymane są w pamięci .NET i znikają po jego restarcie.
+
+---
+
+## NOWE: wygląd „Moje konto” + Karta ciąży
+
+- Po zalogowaniu znika menu serwisu i baner „Prototyp…” — zostaje jedno menu rodzica (`components/Layout.jsx`, `przewodnik/komponenty/PasekModulu.jsx`).
+- „Pulpit” = **Moje konto** (`ekrany/Pulpit.jsx`): hero z gratulacjami i odliczaniem, alarmy, oś terminów.
+- Terminy liczy `przewodnik/terminy.js` z terminu porodu w karcie ciąży.
+- **Karta ciąży**: `/przewodnik/karta-ciazy` (`ekrany/KartaCiazy.jsx`, dane w `dane.js` → `KARTA_CIAZY`, backend `GET /api/symulacja/karta-ciazy/{pesel}`).
+- Kolory i gradient: `przewodnik/wyglad.css` (na górze zmienne `--m-...`).
+- Czcionka Inter jest dociągana w `index.html` (bez internetu użyje systemowej).
+
+---
+
+## NOWE: „Moje konto” w zygzaku
+- Hero: zamiast kół o ciąży — odliczanie dni do **kolejnego wniosku** (najbliższy termin wniosku, który nie jest jeszcze złożony; po wysłaniu ZAM przeskakuje na 800+).
+- Pod spodem oś czasu prawo–lewo z checklistą przy każdym kroku. Kroki i zadania: `przewodnik/plan.js`. Odhaczenia zapisują się w przeglądarce.
+- Na dole dwa szerokie pasy (ubezpieczenie i karta ciąży), na zmianę tekst/obraz.
