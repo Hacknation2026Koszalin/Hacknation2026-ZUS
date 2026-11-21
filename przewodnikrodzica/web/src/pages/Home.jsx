@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AKTUALNOSCI_ZAPAS, NAJCZESCIEJ, ZALATW } from "../data/nawigacja.js";
 
-const formatDaty = (iso) => new Date(iso).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
+const formatDaty = (iso) =>
+  new Date(iso).toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
 export default function Home() {
   const [aktualnosci, setAktualnosci] = useState(AKTUALNOSCI_ZAPAS);
@@ -24,11 +29,20 @@ export default function Home() {
       <section className="hero">
         <div className="wrap hero-in">
           <div>
-            <h1>Załatw sprawę w ZUS szybciej</h1>
-            <p>Świadczenia, zasiłki, składki i formularze — w jednym miejscu.</p>
+            <h1>Załatw sprawę w ZUS szybciej2137</h1>
+            <p>
+              Świadczenia, zasiłki, składki i formularze — w jednym miejscu.
+            </p>
             <div className="hero-cta">
-              <Link to="/logowanie" className="btn btn-primary">Zaloguj do eZUS</Link>
-              <Link to="/wzory-formularzy/najpopularniejsze" className="btn btn-secondary">Wzory formularzy</Link>
+              <Link to="/logowanie" className="btn btn-primary">
+                Zaloguj do eZUS
+              </Link>
+              <Link
+                to="/wzory-formularzy/najpopularniejsze"
+                className="btn btn-secondary"
+              >
+                Wzory formularzy
+              </Link>
             </div>
           </div>
 
@@ -36,7 +50,10 @@ export default function Home() {
           <Link to="/przewodnik" className="promo-card">
             <span className="badge">Nowość</span>
             <h2>Przewodnik młodego rodzica</h2>
-            <p>Sprawdź, jakie zasiłki przysługują Ci w ciąży i po porodzie, ile wyniosą i gdzie złożyć wniosek.</p>
+            <p>
+              Sprawdź, jakie zasiłki przysługują Ci w ciąży i po porodzie, ile
+              wyniosą i gdzie złożyć wniosek.
+            </p>
             <span className="promo-link">Rozpocznij →</span>
           </Link>
         </div>
@@ -47,7 +64,9 @@ export default function Home() {
         <div className="grid grid-4">
           {ZALATW.map((k) => (
             <Link key={k.tytul} to={k.do} className="tile tile-action">
-              <span className="tile-icon" aria-hidden="true">{k.ikona}</span>
+              <span className="tile-icon" aria-hidden="true">
+                {k.ikona}
+              </span>
               <b>{k.tytul}</b>
               <span>{k.opis}</span>
             </Link>
@@ -70,7 +89,11 @@ export default function Home() {
       <section className="wrap section">
         <div className="section-head">
           <h2 className="section-title">Aktualności</h2>
-          <small className="muted">{zrodlo === "api" ? "dane z API .NET" : "dane zapasowe (API niedostępne)"}</small>
+          <small className="muted">
+            {zrodlo === "api"
+              ? "dane z API .NET"
+              : "dane zapasowe (API niedostępne)"}
+          </small>
         </div>
         <div className="grid grid-3">
           {aktualnosci.map((a) => (
