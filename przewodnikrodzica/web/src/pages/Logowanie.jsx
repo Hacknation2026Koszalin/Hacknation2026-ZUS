@@ -4,114 +4,22 @@ import "../index.css";
 
 export default function Logowanie() {
   return (
-    <main className="login-page">
-      <div className="login-container">
-
-        {/* NAGŁÓWEK */}
-        <header className="login-header">
-          <span className="login-eyebrow">
-            DOSTĘP DO PRZEWODNIKA
-          </span>
-
-          <h1>Wybierz sposób logowania</h1>
-
-          <p>
-            Wybierz jedną z dostępnych metod, aby przejść
-            do przewodnika i sprawdzić informacje
-            o przysługujących Ci świadczeniach.
-          </p>
-        </header>
-
-        {/* METODY LOGOWANIA */}
-        <section
-          className="login-methods"
-          aria-label="Metody logowania"
-        >
-
-          {/* APLIKACJA MOBILNA ZUS */}
-          <div
-            className="login-method login-method--disabled"
-            aria-disabled="true"
-          >
-            <div className="login-method__icon">
-              <img
-                src="/smartphone.svg"
-                alt=""
-                aria-hidden="true"
-              />
-            </div>
-
-            <div className="login-method__content">
-              <h2>Aplikacja mobilna ZUS</h2>
-              <p>
-                Zaloguj się, skanując kod QR
-                za pomocą aplikacji mobilnej.
-              </p>
-            </div>
-
-            <span className="login-method__status">
-              Niedostępne
-            </span>
-          </div>
-
-          {/* LOGIN.GOV.PL */}
-          <Link
-            to="/przewodnik"
-            className="login-method login-method--active"
-            aria-label="Kontynuuj przez login.gov.pl — symulacja"
-          >
-            <div className="login-method__icon">
-              <img
-                src="/shield.svg"
-                alt=""
-                aria-hidden="true"
-              />
-            </div>
-
-            <div className="login-method__content">
-              <h2>login.gov.pl</h2>
-              <p>
-                Profil zaufany, bankowość elektroniczna,
-                mObywatel lub e-Dowód.
-              </p>
-            </div>
-
-            <span
-              className="login-method__arrow"
-              aria-hidden="true"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M5 12h14m-6-6 6 6-6 6"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </Link>
-
-        </section>
-
-        {/* INFORMACJA O SYMULACJI */}
-        <div className="login-notice">
-          <div className="login-notice__divider" />
-
-          <p>
-            To wersja demonstracyjna aplikacji.
-            Proces logowania jest symulowany i nie wymaga
-            podawania rzeczywistych danych osobowych
-            ani danych uwierzytelniających.
-          </p>
-        </div>
-
+    <div className="wrap page narrow">
+      <h1>Zaloguj się</h1>
+      <p className="lead">Wybierz sposób logowania. W prototypie działa tylko symulacja mObywatela.</p>
+      <div className="login-options">
+        <button className="login-option" disabled aria-disabled="true" title="Niedostępne w prototypie">
+          <span className="login-icon" aria-hidden="true">📱</span>
+          <span><b>Aplikacja mobilna ZUS</b><small>Skanuj kod QR za pomocą aplikacji mobilnej</small></span>
+          <span aria-hidden="true">›</span>
+        </button>
+        <Link to="/przewodnik" className="login-option">
+          <span className="login-icon" aria-hidden="true">🛡️</span>
+          <span><b>login.gov.pl</b><small>Profil zaufany, bankowość, mObywatel, e-Dowód lub eID</small></span>
+          <span aria-hidden="true">›</span>
+        </Link>
       </div>
-    </main>
+      <p className="muted small">Symulacja: kliknięcie „login.gov.pl” przeniesie do Przewodnika. Tu podepniecie ekrany logowania mObywatelem z planu podstron.</p>
+    </div>
   );
 }

@@ -1,0 +1,125 @@
+/* ===== Moduł "Przewodnik młodego rodzica" ===== */
+:root { --gov: #0052a5; --gov-soft: #e8f0fb; }
+
+/* pasek kroków logowania */
+.kroki { list-style: none; display: flex; gap: 8px; padding: 0; margin: 0 0 20px; flex-wrap: wrap; }
+.kroki li { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; flex: 1 1 140px; }
+.kroki li::after { content: ""; flex: 1; height: 2px; background: var(--line); }
+.kroki li:last-child::after { display: none; }
+.kroki-nr { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line); background: #fff; font-weight: 700; font-size: 13px; flex: none; }
+.kroki li.now { color: var(--ink); font-weight: 600; }
+.kroki li.now .kroki-nr { border-color: var(--gov); color: var(--gov); }
+.kroki li.done .kroki-nr { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* pudełko symulacji */
+.sim-box { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 28px; animation: wjazd .35s ease; }
+.sim-box h1 { margin: 4px 0 8px; font-size: 26px; }
+.sim-tag { display: inline-block; margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #8a5a00; background: #fdf3dc; border-radius: 999px; padding: 3px 10px; }
+.row-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+.row-btns.center { justify-content: center; }
+
+.sposoby { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.sposob { display: flex; align-items: center; gap: 16px; background: var(--gov-soft); border: 2px solid transparent; border-radius: 14px; padding: 18px 20px; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s; }
+.sposob:hover:not([disabled]) { border-color: var(--gov); transform: translateX(3px); }
+.sposob[disabled] { opacity: .5; cursor: not-allowed; }
+.sposob-ikona { font-size: 28px; }
+.sposob-txt { flex: 1; display: flex; flex-direction: column; }
+.sposob-txt b { font-size: 18px; }
+.sposob-txt small { color: var(--muted); }
+
+/* mObywatel */
+.mob-grid { display: grid; grid-template-columns: 200px 1fr; gap: 28px; align-items: center; margin-top: 16px; }
+.qr { width: 200px; height: 200px; background: #fff; padding: 10px; border: 1px solid var(--line); border-radius: 12px; fill: var(--ink); }
+.mob-kroki { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.mob-kod { list-style: none; margin-left: -20px; font-size: 32px; font-weight: 800; letter-spacing: .12em; color: var(--gov); }
+.mob-status { margin-top: 20px; padding: 14px 16px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.mob-status.ok { background: var(--green-soft); color: var(--green-dark); animation: wjazd .3s ease; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--gov); animation: obrot .8s linear infinite; }
+
+/* zgoda */
+.dane-lista { display: grid; gap: 0; margin: 16px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.dane-lista div { display: grid; grid-template-columns: 200px 1fr; padding: 12px 16px; border-top: 1px solid var(--line); }
+.dane-lista div:first-child { border-top: 0; }
+.dane-lista dt { color: var(--muted); }
+.dane-lista dd { margin: 0; font-weight: 600; }
+.info-box { background: var(--gov-soft); border-radius: 12px; padding: 14px 16px; font-size: 15px; }
+
+/* pobieranie */
+.pobieranie { list-style: none; padding: 0; margin: 20px 0; display: flex; flex-direction: column; gap: 14px; }
+.pobieranie li { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 17px; transition: color .2s; }
+.pobieranie li.ok { color: var(--ink); }
+.pob-ikona { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); font-weight: 700; }
+.pobieranie li.ok .pob-ikona { background: var(--green); color: #fff; animation: pyk .3s ease; }
+.pobieranie li.teraz .pob-ikona { border: 3px solid var(--line); border-top-color: var(--gov); animation: obrot .8s linear infinite; }
+.pasek { height: 8px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+.pasek div { height: 100%; background: var(--green); transition: width .5s ease; }
+
+/* przewodnik powitalny (pełny ekran) */
+.onb-tlo { position: fixed; inset: 0; z-index: 100; background: rgba(15, 23, 32, .55); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; animation: zanik .3s ease reverse; }
+.onb-okno { position: relative; width: min(720px, 100%); min-height: 520px; background: #fff; border-radius: 24px; padding: 40px 40px 28px; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,.25); transform-origin: calc(100% - 40px) 0; }
+.onb-pomin { position: absolute; top: 18px; right: 20px; background: none; border: 0; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.onb-tresc { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; gap: 10px; animation: slajd .35s ease; }
+.onb-tresc h2 { margin: 6px 0 0; font-size: 28px; }
+.onb-hello { margin: 0; font-size: 48px; font-weight: 800; background: linear-gradient(90deg, var(--green), var(--gov)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.onb-powitanie { margin: 0 0 8px; font-weight: 700; color: var(--green-dark); }
+.onb-ilustracja { width: 240px; height: 150px; border-radius: 20px; background: linear-gradient(135deg, var(--green-soft), var(--gov-soft)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+.onb-ikona { font-size: 52px; }
+.onb-mini { background: #fff; border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.onb-tekst { max-width: 460px; color: var(--muted); font-size: 17px; margin: 0; }
+.etapy { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; width: 100%; margin-top: 12px; }
+.etap { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 2px solid transparent; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s; }
+.etap:hover, .etap.wybrany { border-color: var(--green); transform: translateY(-2px); }
+.etap-ikona { font-size: 24px; }
+.onb-nawigacja { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.kropki { display: flex; gap: 8px; }
+.kropki button { width: 10px; height: 10px; border-radius: 999px; border: 0; background: var(--line); cursor: pointer; padding: 0; transition: width .2s, background .2s; }
+.kropki button.on { width: 28px; background: var(--green); }
+/* "wlot" do ikony ? w prawym górnym rogu */
+.onb-tlo.wylot { animation: zanik .6s ease forwards; }
+.onb-tlo.wylot .onb-okno { animation: doPomocy .6s cubic-bezier(.6,-0.1,.7,.4) forwards; }
+
+/* pasek modułu po zalogowaniu */
+.modul-pasek { background: #fff; border-bottom: 1px solid var(--line); }
+.modul-in { display: flex; align-items: center; gap: 16px; min-height: 56px; }
+.modul-nazwa { font-weight: 800; color: var(--green-dark); text-decoration: none; white-space: nowrap; }
+.modul-zakladki { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+.modul-zakladki a { padding: 8px 12px; border-radius: 8px; text-decoration: none; color: var(--ink); font-weight: 600; white-space: nowrap; }
+.modul-zakladki a.active { background: var(--green-soft); color: var(--green-dark); }
+.modul-zakladki a.wyroznij { color: var(--green-dark); }
+.pomoc, .awatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--green); background: #fff; color: var(--green-dark); font-weight: 800; font-size: 17px; cursor: pointer; flex: none; }
+.awatar { background: var(--green); color: #fff; font-size: 14px; }
+.pomoc.pulsuje { animation: puls 1.2s ease 2; }
+
+/* pulpit */
+.pulpit-hero { margin-bottom: 20px; }
+.pulpit-hero h1 { margin: 4px 0; font-size: 32px; }
+.karta { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.karta-h { margin: 0 0 10px; font-weight: 700; }
+.status { margin: 0 0 8px; font-weight: 700; }
+.status.zielony { color: var(--green-dark); }
+.status.zolty { color: #8a5a00; }
+.status.czerwony { color: #b42318; }
+.terminy { margin: 0 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.tag { font-size: 12px; background: var(--gov-soft); border-radius: 999px; padding: 1px 8px; }
+.link { background: none; border: 0; padding: 0; color: var(--green-dark); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* animacje */
+@keyframes wjazd { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes slajd { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes zanik { from { opacity: 1; } to { opacity: 0; } }
+@keyframes obrot { to { transform: rotate(360deg); } }
+@keyframes pyk { 0% { transform: scale(.4); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes doPomocy { to { transform: translate(40vw, -45vh) scale(.04); opacity: .2; } }
+@keyframes puls { 0%,100% { box-shadow: 0 0 0 0 rgba(0,132,61,.5); } 50% { box-shadow: 0 0 0 10px rgba(0,132,61,0); } }
+
+@media (max-width: 720px) {
+  .mob-grid { grid-template-columns: 1fr; justify-items: center; }
+  .dane-lista div { grid-template-columns: 1fr; }
+  .onb-okno { padding: 48px 20px 20px; min-height: 0; }
+  .onb-hello { font-size: 38px; }
+  .kroki-txt { display: none; }
+  .modul-nazwa { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
