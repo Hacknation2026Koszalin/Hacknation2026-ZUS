@@ -8,9 +8,15 @@ import Pobieranie from "./ekrany/Pobieranie.jsx";
 import Witaj from "./ekrany/Witaj.jsx";
 import Pulpit from "./ekrany/Pulpit.jsx";
 import WBudowie from "./ekrany/WBudowie.jsx";
+import Swiadczenia from "./ekrany/Swiadczenia.jsx";
+import ZasilekMacierzynski from "./ekrany/ZasilekMacierzynski.jsx";
+import MojeSprawy from "./ekrany/MojeSprawy.jsx";
+import Urzednik from "./ekrany/Urzednik.jsx";
+import WniosekZAM from "./wniosek/WniosekZAM.jsx";
 import PasekModulu from "./komponenty/PasekModulu.jsx";
 import PrzewodnikPowitalny from "./komponenty/PrzewodnikPowitalny.jsx";
 import "./przewodnik.css";
+import "./wniosek/wniosek.css";
 
 // Strony dostępne tylko po zalogowaniu: pasek modułu + ? + przewodnik ponownie
 function Zalogowany({ children }) {
@@ -40,10 +46,14 @@ export default function PrzewodnikApp() {
         <Route path="witaj" element={<Witaj />} />
         <Route path="pulpit" element={chron(<Pulpit />)} />
         <Route path="sciezka" element={chron(<WBudowie tytul="Moja ścieżka" />)} />
-        <Route path="swiadczenia" element={chron(<WBudowie tytul="Świadczenia" />)} />
+        <Route path="swiadczenia" element={chron(<Swiadczenia />)} />
+        <Route path="swiadczenia/zasilek-macierzynski" element={chron(<ZasilekMacierzynski />)} />
+        <Route path="swiadczenia/zasilek-macierzynski/wniosek" element={chron(<WniosekZAM />)} />
         <Route path="kalkulator" element={chron(<WBudowie tytul="Kalkulator" />)} />
-        <Route path="sprawy" element={chron(<WBudowie tytul="Moje sprawy" />)} />
+        <Route path="sprawy" element={chron(<MojeSprawy />)} />
         <Route path="wsparcie" element={chron(<WBudowie tytul="Wsparcie" />)} />
+        {/* Tryb demo: widok urzędnika (bez logowania obywatela) */}
+        <Route path="urzednik" element={<Urzednik />} />
         <Route path="*" element={<Navigate to="/przewodnik" replace />} />
       </Routes>
     </SesjaProvider>

@@ -59,7 +59,7 @@ export default function Pulpit() {
 
       <h2 className="section-title" style={{ marginTop: 32 }}>Na skróty</h2>
       <div className="grid grid-4">
-        {[["🧮", "Kalkulator zasiłku", "/przewodnik/kalkulator"], ["✍️", "Złóż wniosek", "/przewodnik/swiadczenia"], ["🗂️", "Moje dane z ZUS", "/przewodnik/sciezka"], ["🤍", "Wsparcie", "/przewodnik/wsparcie"]].map(([i, n, d]) => (
+        {[["🧮", "Kalkulator zasiłku", "/przewodnik/kalkulator"], ["✍️", "Wniosek o zasiłek macierzyński", "/przewodnik/swiadczenia/zasilek-macierzynski"], ["📬", "Moje sprawy", "/przewodnik/sprawy"], ["🤍", "Wsparcie", "/przewodnik/wsparcie"]].map(([i, n, d]) => (
           <Link key={n} to={d} className="tile tile-action"><span className="tile-icon" aria-hidden="true">{i}</span><b>{n}</b></Link>
         ))}
       </div>
