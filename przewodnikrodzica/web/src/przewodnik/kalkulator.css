@@ -1,0 +1,222 @@
+/* Style kalkulatora – korzystają ze zmiennych i klas aplikacji (karta, muted, status, link…). */
+.kalk-zestawy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 16px 0 24px;
+}
+.kalk-chip {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  opacity: 0.85;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.kalk-chip:hover {
+  opacity: 1;
+}
+
+.kalk-uklad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  align-items: start;
+}
+.kalk-formularz {
+  display: grid;
+  gap: 16px;
+}
+.kalk-sekcja {
+  border: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.kalk-sekcja legend {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.kalk-pole {
+  display: grid;
+  gap: 4px;
+  font-size: 0.9375rem;
+}
+.kalk-pole input[type="number"],
+.kalk-pole input[type="date"],
+.kalk-pole select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font: inherit;
+  border: 1px solid #9aa3ad;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+}
+.kalk-pole input[type="range"] {
+  width: 100%;
+}
+.kalk-rzad {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.kalk-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.9375rem;
+}
+.kalk-check input {
+  margin-top: 3px;
+}
+
+.kalk-radio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kalk-radio label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px solid #9aa3ad;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+}
+.kalk-radio label.aktywny {
+  border-color: currentColor;
+  font-weight: 600;
+}
+.kalk-radio input {
+  margin: 0;
+}
+
+.kalk-pole input:focus-visible,
+.kalk-chip:focus-visible,
+.kalk-radio input:focus-visible,
+.kalk-check input:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.kalk-sticky {
+  position: sticky;
+  top: 16px;
+}
+.kalk-duza {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+
+.kalk-tabela-wrap {
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.kalk-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.kalk-tabela th,
+.kalk-tabela td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid #c9ced4;
+  vertical-align: top;
+}
+.kalk-tabela th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.kalk-tabela td:nth-child(n + 4),
+.kalk-tabela th:nth-child(n + 4) {
+  text-align: right;
+}
+
+@media (max-width: 860px) {
+  .kalk-uklad {
+    grid-template-columns: 1fr;
+  }
+  .kalk-sticky {
+    position: static;
+  }
+  .kalk-wynik {
+    order: -1;
+  } /* wynik nad formularzem na telefonie */
+  .kalk-duza {
+    font-size: 1.75rem;
+  }
+}
+
+/* =====================================================================
+   v12 — kalkulator: jeden panel na środku, wynik na dole
+   ===================================================================== */
+.kk { max-width: 880px; }
+.kk-glowa { text-align: center; margin-bottom: 22px; }
+.modul .kk h1 { font-size: clamp(28px, 3vw, 38px); }
+.modul .kk .lead { margin: 0 auto 14px; max-width: 620px; color: var(--m-muted); font-size: 18px; }
+.kk-przyklad { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 15px; font-weight: 600; color: var(--m-muted); }
+.kk-przyklad select { min-height: 42px; border: 1px solid #9fb0c2; border-radius: 10px; padding: 0 12px; font: inherit; font-weight: 500; color: var(--m-ink); background: #fff; max-width: 100%; }
+.kk-karta { background: #fff; border: 1px solid #e3e9ef; border-radius: 24px; box-shadow: 0 1px 2px rgba(11, 31, 51, .05), 0 12px 32px rgba(11, 31, 51, .08); padding: 8px 28px; }
+.kk-krok { border: 0; margin: 0; padding: 22px 0; min-width: 0; border-bottom: 1px solid #edf1f5; }
+.kk-krok:last-child { border-bottom: 0; }
+.kk-krok-glowa { float: left; width: 100%; padding: 0; margin: 0 0 14px; display: flex; gap: 14px; align-items: flex-start; }
+.kk-krok-glowa b { display: block; font-size: 20px; line-height: 1.3; color: var(--m-ink); }
+.kk-krok-glowa em { font-style: normal; color: var(--m-muted); font-weight: 500; font-size: 15px; }
+.kk-krok-glowa small { display: block; color: var(--m-muted); font-size: 15px; font-weight: 400; margin-top: 2px; }
+.kk-nr { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--m-blue); color: #fff; font-weight: 800; font-size: 17px; }
+.kk-krok-tresc { clear: both; display: grid; gap: 14px; padding-left: 50px; }
+@media (max-width: 640px) { .kk-krok-tresc { padding-left: 0; } .kk-karta { padding: 4px 16px; } }
+.kk-siatka { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; align-items: end; }
+.kk-zl { position: relative; display: block; }
+.kk-zl input { padding-right: 40px !important; font-size: 18px !important; font-weight: 700 !important; }
+.kk-zl > span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--m-muted); font-weight: 600; }
+.kk-pomoc { margin: 0; font-size: 14px; color: var(--m-muted); }
+.kk-link { justify-self: start; border: 0; background: none; padding: 0; font: inherit; font-size: 15px; font-weight: 700; color: var(--m-blue); text-decoration: underline; cursor: pointer; }
+.kk-licznik { display: inline-flex; align-items: center; gap: 0; border: 1px solid #9fb0c2; border-radius: 12px; overflow: hidden; background: #fff; width: max-content; }
+.kk-licznik button { width: 46px; height: 46px; border: 0; background: #f5f7fa; color: var(--m-blue); font: inherit; font-size: 22px; font-weight: 700; cursor: pointer; }
+.kk-licznik button:hover:not(:disabled) { background: var(--green-soft); }
+.kk-licznik button:disabled { opacity: .35; cursor: default; }
+.kk-licznik button:focus-visible { outline: 3px solid var(--m-blue); outline-offset: -3px; }
+.kk-licznik output { min-width: 56px; text-align: center; font-weight: 800; font-size: 18px; }
+.kk-podzial { display: grid; gap: 8px; }
+.kk-podzial-glowa { display: flex; justify-content: space-between; align-items: baseline; }
+.kk-podzial-pasek { display: flex; height: 40px; border-radius: 12px; overflow: hidden; font-size: 14px; font-weight: 700; }
+.kk-podzial-pasek span { display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; padding: 0 8px; transition: width .2s; }
+.kk-podzial-pasek .m { background: var(--m-blue); color: #fff; }
+.kk-podzial-pasek .o { background: var(--m-green); color: var(--m-ink); }
+.kk-wynik { margin-top: 30px; scroll-margin-top: 90px; }
+.kk-wynik-tytul { display: flex; align-items: center; gap: 12px; font-size: 26px; margin: 0 0 12px; }
+.kk-nr-wynik { background: var(--m-green); color: var(--m-ink); }
+.kk-wynik-karta { background: #fff; border: 2px solid var(--m-blue); border-radius: 24px; padding: 24px 28px; display: grid; gap: 16px; }
+.kk-pusty { margin: 0; color: var(--m-muted); font-size: 18px; text-align: center; padding: 20px 0; }
+.kk-suma { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; padding: 18px 22px; border-radius: 18px; background: linear-gradient(120deg, #f1f9e3, #e6f0fb); }
+.kk-suma small { color: var(--m-muted); font-weight: 600; }
+.kk-duza { margin: 2px 0 0; font-size: clamp(34px, 4vw, 48px); font-weight: 800; color: var(--m-blue); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.kk-znak { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; background: #fff; color: #3f6600; font-weight: 700; font-size: 14px; }
+.kk-osoby { list-style: none; padding: 0; margin: 0; display: flex; gap: 12px; flex-wrap: wrap; }
+.kk-osoby li { background: #fff; border-radius: 14px; padding: 10px 16px; display: flex; flex-direction: column; }
+.kk-osoby b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.kk-tabela td:nth-child(n+3) { font-variant-numeric: tabular-nums; }
+.kk-terminy { background: #f5f7fa; border-radius: 14px; padding: 12px 16px; }
+.kk-terminy ul { margin: 6px 0 0; }
+.kk-pasek { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: 18px; padding: 12px 14px 12px 22px; border: 0; border-radius: 999px; background: var(--m-ink); color: #fff; font: inherit; font-size: 16px; box-shadow: 0 12px 30px rgba(11, 31, 51, .35); cursor: pointer; }
+.kk-pasek b { font-variant-numeric: tabular-nums; }
+.kk-pasek-cta { background: var(--m-green); color: var(--m-ink); border-radius: 999px; padding: 6px 14px; font-weight: 700; }
+.kk-pasek:focus-visible { outline: 3px solid #ff8c00; outline-offset: 3px; }
+@media (max-width: 520px) { .kk-pasek { left: 12px; right: 90px; transform: none; justify-content: space-between; gap: 8px; font-size: 14px; padding: 10px 10px 10px 16px; } .kk-przyklad { display: flex; flex-direction: column; } .kk-przyklad select { width: 100%; } }
+.kk-wariant { display: grid; gap: 8px; padding-top: 4px; }
+.kk-wariant-pyt { font-weight: 700; font-size: 15px; color: var(--m-ink); }

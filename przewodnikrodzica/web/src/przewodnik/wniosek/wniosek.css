@@ -1,0 +1,363 @@
+/* =====================================================================
+   Wniosek + strony świadczeń + Moje sprawy + widok urzędnika
+   Kolory marki: niebieski #025AC4, zielony #8FD201 (tylko jako tło/akcent!)
+   ===================================================================== */
+:root {
+  --w-p: #025ac4;
+  --w-p-hover: #01489c;
+  --w-p-soft: #e6f0fb;
+  --w-acc: #8fd201;
+  --w-acc-soft: #f2fadf;
+  --w-acc-text: #3f6600;
+  --w-ink: #0b1f33;
+  --w-muted: #536271;
+  --w-line: #d9e1ea;
+  --w-bg: #f5f7fa;
+  --w-warn: #b25e00;
+  --w-warn-soft: #fff4e5;
+  --w-danger: #b42318;
+  --w-danger-soft: #fdecea;
+}
+
+.wn { padding: 24px 0 64px; color: var(--w-ink); font-size: 17px; line-height: 1.6; }
+.wn h1 { font-size: 32px; line-height: 1.25; margin: 8px 0 8px; }
+.wn-lead { font-size: 18px; color: var(--w-muted); margin: 0 0 16px; }
+.wn-mono { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.wn-okruszki { font-size: 14px; color: var(--w-muted); margin-bottom: 16px; }
+.wn-okruszki a { color: var(--w-p); }
+
+/* ---------- przyciski ---------- */
+.wn-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid transparent; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; transition: background-color .15s ease-out, border-color .15s ease-out; }
+.wn-btn:focus-visible, .wn-link:focus-visible, .wn-wybor-opcja:focus-visible, .wn-opcja:focus-within { outline: 3px solid var(--w-p); outline-offset: 2px; }
+.wn-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.wn-btn-glowny { background: var(--w-p); color: #fff; }
+.wn-btn-glowny:hover:not([disabled]) { background: var(--w-p-hover); }
+.wn-btn-drugi { background: #fff; color: var(--w-p); border-color: var(--w-p); }
+.wn-btn-drugi:hover:not([disabled]) { background: var(--w-p-soft); }
+.wn-btn-sukces { background: var(--w-acc); color: var(--w-ink); }
+.wn-btn-sukces:hover:not([disabled]) { background: #80bd00; }
+.wn-btn-tekst { background: none; color: var(--w-p); padding: 0 10px; }
+.wn-btn-tekst:hover:not([disabled]) { background: var(--w-p-soft); }
+.wn-btn-duzy { min-height: 52px; padding: 0 24px; font-size: 17px; }
+.wn-btn-maly { min-height: 36px; padding: 0 12px; font-size: 14px; }
+.wn-link { background: none; border: 0; padding: 0; color: var(--w-p); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.wn-przyciski { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; align-items: center; }
+
+/* ---------- karty, tagi, alerty ---------- */
+.wn-karta { background: #fff; border: 1px solid var(--w-line); border-radius: 12px; padding: 28px; margin-bottom: 16px; }
+.wn-tag { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--w-p); background: var(--w-p-soft); border-radius: 999px; padding: 3px 10px; }
+.wn-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; border-radius: 999px; padding: 2px 10px; background: var(--w-bg); color: var(--w-muted); margin-left: 8px; }
+.wn-chip.wym { background: var(--w-p-soft); color: var(--w-p); }
+.wn-chip.uwaga { background: var(--w-warn-soft); color: var(--w-warn); }
+.wn-chip.ok { background: var(--w-acc-soft); color: var(--w-acc-text); }
+.wn-chip.info { background: var(--w-p-soft); color: var(--w-p); }
+.wn-chip.szary { background: #eef1f4; color: var(--w-muted); }
+.wn-alert { display: flex; gap: 12px; align-items: flex-start; border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; background: var(--w-p-soft); }
+.wn-alert p { margin: 4px 0 0; }
+.wn-alert.uwaga { background: var(--w-warn-soft); }
+.wn-alert.uwaga .ikona { color: var(--w-warn); }
+.wn-alert.ok { background: var(--w-acc-soft); }
+.wn-alert.ok .ikona { color: var(--w-acc-text); }
+.wn-ikona-duza { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; }
+.wn-ikona-duza.ok { background: var(--w-acc); color: var(--w-ink); }
+.wn-ikona-duza.uwaga { background: var(--w-warn-soft); color: var(--w-warn); }
+
+/* ---------- start ---------- */
+.wn-start { max-width: 780px; }
+.wn-lista-ok { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 10px; }
+.wn-lista-ok li { display: flex; gap: 10px; align-items: flex-start; }
+.wn-lista-ok .ikona { flex: none; margin-top: 3px; color: var(--w-ink); background: var(--w-acc); border-radius: 50%; padding: 2px; }
+.wn-uwaga-proto { display: flex; gap: 10px; font-size: 15px; color: var(--w-muted); background: var(--w-bg); border-radius: 8px; padding: 12px 14px; }
+.wn-uwaga-proto .ikona { flex: none; margin-top: 2px; }
+.wn-szkic { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px dashed var(--w-line); border-radius: 8px; padding: 12px 14px; margin-top: 16px; }
+.wn-szkic span { display: inline-flex; gap: 8px; align-items: center; }
+.wn-wybor { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+.wn-wybor-opcja { position: relative; display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; background: #fff; border: 1px solid var(--w-line); border-radius: 12px; padding: 22px; cursor: pointer; color: var(--w-ink); transition: border-color .15s ease-out; }
+.wn-wybor-opcja b { font-size: 19px; }
+.wn-wybor-opcja span { color: var(--w-muted); font-size: 15px; }
+.wn-wybor-opcja:hover { border-color: var(--w-p); }
+.wn-wybor-opcja.polecane { border: 2px solid var(--w-p); }
+.wn-polecane { align-self: flex-start; font-size: 12px !important; font-weight: 700; color: var(--w-ink) !important; background: var(--w-acc); border-radius: 999px; padding: 2px 10px; }
+
+/* ---------- HUD (pasek postępu nad formularzem) ---------- */
+.wn-hud { position: sticky; top: 0; z-index: 30; margin: 0 -8px 16px; padding: 8px; }
+.wn-hud.nad-zaslona { z-index: 45; }
+.wn-hud-in { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid var(--w-line); border-radius: 12px; padding: 12px 16px; box-shadow: 0 4px 16px rgba(11, 31, 51, .08); }
+.wn-hud-tytul { display: flex; flex-direction: column; min-width: 210px; font-size: 14px; color: var(--w-muted); }
+.wn-hud-tytul b { color: var(--w-ink); font-size: 16px; }
+.wn-pasek { flex: 1; height: 10px; background: var(--w-bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--w-line); }
+.wn-pasek div { height: 100%; background: var(--w-acc); transition: width .3s ease-out; }
+
+/* ---------- zasłona (przyciemnienie jak w tutorialu gry) ---------- */
+.wn-zaslona { position: fixed; inset: 0; z-index: 40; background: rgba(11, 31, 51, .66); animation: wn-zanik .2s ease-out; }
+@keyframes wn-zanik { from { opacity: 0; } }
+
+/* ---------- papierowy formularz ---------- */
+.wn-obszar { max-width: 860px; margin: 0 auto; }
+.wn-papier { background: #fff; border: 1px solid var(--w-line); border-radius: 4px; padding: 36px 44px 28px; box-shadow: 0 1px 2px rgba(11, 31, 51, .06); }
+.wn-papier-glowa { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; border-bottom: 2px solid var(--w-ink); padding-bottom: 14px; }
+.wn-znak { display: flex; flex-direction: column; justify-content: center; border-left: 4px solid var(--w-p); padding-left: 12px; }
+.wn-znak span { font-weight: 700; }
+.wn-znak small { color: var(--w-muted); font-size: 13px; }
+.wn-symbol { background: var(--w-bg); font-size: 34px; font-weight: 800; letter-spacing: .04em; padding: 6px 20px; border-radius: 4px; display: grid; place-items: center; }
+.wn-tytul { font-size: 24px; margin: 22px 0 4px; }
+.wn-instr { font-size: 15px; color: var(--w-muted); margin: 0 0 8px; }
+.wn-czesc h3 { font-size: 16px; text-transform: uppercase; letter-spacing: .04em; margin: 28px 0 6px; padding: 8px 12px; background: var(--w-bg); border-radius: 4px; }
+.wn-czesc h3 span { color: var(--w-p); }
+
+.wn-pole { display: grid; grid-template-columns: 36px 1fr; gap: 8px; padding: 14px 12px; border-bottom: 1px solid #edf1f5; border-radius: 8px; background: #fff; }
+.wn-nr { font-weight: 700; color: var(--w-muted); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.wn-tresc { min-width: 0; }
+.wn-etyk { display: block; font-weight: 600; margin-bottom: 8px; }
+.wn-gw { color: var(--w-danger); font-weight: 700; }
+.wn-opc { color: var(--w-muted); font-weight: 400; font-size: 14px; }
+.wn-pole input[type="text"], .wn-pole input[type="date"], .wn-pole select { width: 100%; max-width: 440px; min-height: 44px; border: 1px solid #9fb0c2; border-radius: 6px; padding: 8px 12px; font: inherit; background: #fff; color: var(--w-ink); }
+.wn-pole input:focus-visible, .wn-pole select:focus-visible { outline: 3px solid var(--w-p); outline-offset: 2px; }
+.wn-pole input[type="file"] { font: inherit; font-size: 15px; }
+/* PESEL w kratkach jak na papierze (11 kratek po 30 px) */
+.wn-kratki { width: 332px !important; max-width: 100%; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace !important; font-size: 18px !important; letter-spacing: calc(30px - 1ch); padding: 8px 0 8px calc((30px - 1ch) / 2) !important; background-image: repeating-linear-gradient(90deg, transparent 0 29px, #9fb0c2 29px 30px) !important; background-position: 1px 0; }
+
+.wn-opcje { display: grid; gap: 8px; }
+.wn-opcja { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; border: 1px solid var(--w-line); border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+.wn-opcja input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.wn-opcja b { font-weight: 600; }
+.wn-opcja small { display: block; color: var(--w-muted); font-size: 14px; }
+.wn-opcja:hover { border-color: var(--w-p); }
+.wn-opcja.zazn { border-color: var(--w-p); background: var(--w-p-soft); }
+.wn-opcja.wyl { cursor: not-allowed; opacity: .7; background: var(--w-bg); }
+.wn-opcja.wyl:hover { border-color: var(--w-line); }
+.wn-wyl-powod { color: var(--w-warn) !important; font-weight: 600; }
+/* kratka „X” jak na formularzu papierowym */
+.wn-kratka { width: 24px; height: 24px; border: 1.5px solid var(--w-ink); border-radius: 3px; display: grid; place-items: center; font-weight: 800; font-size: 15px; margin-top: 1px; background: #fff; }
+.wn-opcja.zazn .wn-kratka { border-color: var(--w-p); color: var(--w-p); }
+
+.wn-potw dl { margin: 0; border: 1px solid var(--w-line); border-radius: 8px; overflow: hidden; }
+.wn-potw dl div { display: grid; grid-template-columns: 180px 1fr; padding: 8px 12px; border-top: 1px solid var(--w-line); }
+.wn-potw dl div:first-child { border-top: 0; }
+.wn-potw dt { color: var(--w-muted); }
+.wn-potw dd { margin: 0; font-weight: 600; }
+.wn-zrodlo { font-size: 13px; color: var(--w-muted); margin: 6px 0 10px; }
+.wn-potw-ok, .wn-plik { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--w-acc-text); font-weight: 600; }
+.wn-plik { color: var(--w-ink); }
+.wn-pouczenie { margin-bottom: 10px; }
+.wn-pouczenie summary { cursor: pointer; color: var(--w-p); font-weight: 600; }
+.wn-pouczenie p { background: var(--w-bg); border-radius: 8px; padding: 12px 14px; font-size: 15px; }
+.wn-zgoda { display: flex; gap: 12px; align-items: flex-start; font-weight: 600; cursor: pointer; }
+.wn-zgoda input { width: 22px; height: 22px; margin-top: 3px; accent-color: var(--w-p); flex: none; }
+.wn-zgoda.duza { border: 1px solid var(--w-line); border-radius: 8px; padding: 16px; margin-top: 8px; }
+
+/* pole, które nie dotyczy */
+.wn-nd { opacity: .75; }
+.wn-nd .wn-etyk { color: var(--w-muted); font-weight: 500; text-decoration: line-through; text-decoration-color: rgba(83, 98, 113, .5); margin-bottom: 2px; }
+.wn-nd-txt { display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: 14px; color: var(--w-muted); }
+.wn-nd-txt .ikona { flex: none; margin-top: 3px; }
+
+/* pole pominięte / z błędem */
+.wn-pomin { background: var(--w-warn-soft); }
+.wn-flaga { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--w-warn); font-size: 14px; font-weight: 600; }
+.wn-bledne input, .wn-bledne select { border-color: var(--w-danger) !important; }
+.wn-blad { color: var(--w-danger); font-size: 14px; font-weight: 600; margin: 6px 0 0; }
+
+/* AKTYWNE pole — wyjęte ponad zasłonę */
+.wn-aktywne { position: relative; z-index: 50; box-shadow: 0 0 0 3px var(--w-p), 0 0 0 9px #fff; border-bottom-color: transparent; scroll-margin: 120px; }
+
+/* ---------- dymek ---------- */
+.wn-dymek { position: relative; margin-top: 18px; background: #fff; border: 2px solid var(--w-p); border-radius: 12px; padding: 16px 18px 12px; max-width: 560px; animation: wn-wjazd .2s ease-out; }
+.wn-dymek::before { content: ""; position: absolute; top: -10px; left: 28px; width: 16px; height: 16px; background: #fff; border-left: 2px solid var(--w-p); border-top: 2px solid var(--w-p); transform: rotate(45deg); }
+@keyframes wn-wjazd { from { opacity: 0; transform: translateY(-4px); } }
+.wn-dymek-gora { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: var(--w-muted); }
+.wn-dymek-txt { margin: 8px 0 10px; }
+.wn-dymek-blad { display: flex; gap: 8px; align-items: flex-start; color: var(--w-danger); background: var(--w-danger-soft); border-radius: 8px; padding: 8px 12px; font-weight: 600; font-size: 15px; margin: 0 0 10px; }
+.wn-dymek-blad .ikona { flex: none; margin-top: 2px; }
+.wn-dymek-przyp { color: var(--w-warn); background: var(--w-warn-soft); border-radius: 8px; padding: 8px 12px; font-weight: 600; font-size: 15px; margin: 0 0 10px; }
+.wn-dymek-przyciski { display: flex; gap: 8px; flex-wrap: wrap; }
+.wn-dymek-przyciski .wn-btn-glowny { margin-left: auto; }
+.wn-dymek-mala { font-size: 13px; color: var(--w-muted); margin: 8px 0 0; }
+.wn-dymek-wyl { font-size: 14px; margin-top: 6px; }
+.wn-potrzasnij { animation: wn-potrzasnij .3s ease-out; }
+@keyframes wn-potrzasnij { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.wn-dol { display: flex; justify-content: flex-end; margin-top: 20px; }
+
+/* ---------- braki ---------- */
+.wn-braki { list-style: none; padding: 0; margin: 0; border: 1px solid var(--w-line); border-radius: 12px; }
+.wn-braki li { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--w-line); }
+.wn-braki li:first-child { border-top: 0; }
+.wn-braki small { display: block; color: var(--w-warn); font-weight: 600; font-size: 14px; }
+
+/* ---------- przegląd ---------- */
+.wn-przeglad { max-width: 860px; }
+.wn-sekcja-glowa { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.wn-sekcja-glowa h2 { font-size: 20px; margin: 0; }
+.wn-sekcja-glowa h2 span { color: var(--w-p); }
+.wn-dl { margin: 12px 0 0; }
+.wn-dl div { display: grid; grid-template-columns: minmax(200px, 40%) 1fr; gap: 16px; padding: 10px 0; border-top: 1px solid #edf1f5; }
+.wn-dl dt { color: var(--w-muted); }
+.wn-dl dd { margin: 0; font-weight: 600; }
+.wn-nd-lista { margin-top: 10px; font-size: 15px; color: var(--w-muted); }
+.wn-nd-lista summary { cursor: pointer; font-weight: 600; }
+.wn-nd-lista ul { margin: 8px 0 0; padding-left: 20px; }
+.wn-akcje-dol { position: sticky; bottom: 0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(245, 247, 250, .96); border-top: 1px solid var(--w-line); padding: 16px 0; margin-top: 8px; }
+
+/* ---------- podpis i sukces ---------- */
+.wn-podpis, .wn-sukces { max-width: 720px; }
+.wn-spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .4); border-top-color: #fff; animation: obrot .8s linear infinite; }
+.wn-sukces h1 { margin-top: 16px; }
+.wn-os { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 0; }
+.wn-os li { position: relative; display: grid; grid-template-columns: 28px 1fr; column-gap: 12px; padding-bottom: 18px; }
+.wn-os li > span { grid-row: span 2; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--w-line); background: #fff; margin-top: 2px; }
+.wn-os li::after { content: ""; position: absolute; left: 10px; top: 26px; bottom: 0; width: 2px; background: var(--w-line); }
+.wn-os li:last-child::after { display: none; }
+.wn-os li small { color: var(--w-muted); font-size: 14px; }
+.wn-os li.done > span { background: var(--w-acc); border-color: var(--w-acc); }
+.wn-os li.teraz > span { border-color: var(--w-p); box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 11px var(--w-p); }
+.wn-os li.uwaga > span { border-color: var(--w-warn); background: var(--w-warn-soft); }
+
+/* =====================================================================
+   Strona świadczenia
+   ===================================================================== */
+.sw-uklad { display: grid; grid-template-columns: 240px 1fr; gap: 40px; align-items: start; }
+.sw-spis { position: sticky; top: 16px; font-size: 15px; }
+.sw-spis b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--w-muted); margin-bottom: 8px; }
+.sw-spis ol { list-style: none; padding: 0; margin: 0; border-left: 2px solid var(--w-line); }
+.sw-spis a { display: block; padding: 6px 12px; margin-left: -2px; border-left: 3px solid transparent; color: var(--w-ink); text-decoration: none; }
+.sw-spis a:hover { color: var(--w-p); }
+.sw-spis a.akt { border-left-color: var(--w-p); color: var(--w-p); font-weight: 600; background: var(--w-p-soft); }
+.sw-spis-mobile { display: none; }
+.sw-tresc { max-width: 760px; }
+.sw-tresc section { scroll-margin-top: 90px; padding: 8px 0 20px; border-bottom: 1px solid var(--w-line); }
+.sw-tresc section:last-of-type { border-bottom: 0; }
+.sw-tresc h2 { font-size: 24px; margin: 20px 0 10px; }
+.sw-tresc ul { padding-left: 22px; }
+.sw-tresc li { margin-bottom: 6px; }
+.sw-dla-ciebie { background: var(--w-acc-soft); border: 1px solid #d5ea9f; border-radius: 12px; padding: 20px 22px; margin: 8px 0 8px; }
+.sw-dla-ciebie h2 { margin-top: 0 !important; font-size: 18px !important; display: flex; align-items: center; gap: 10px; }
+.sw-odznaka { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--w-acc-text); background: #fff; border: 1px solid #c9e389; border-radius: 999px; padding: 3px 12px; }
+.sw-kwoty { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.sw-kwota { background: #fff; border-radius: 8px; padding: 12px 14px; border: 1px solid var(--w-line); }
+.sw-kwota small { display: block; color: var(--w-muted); font-size: 14px; }
+.sw-kwota b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.sw-dopisek { font-size: 13px; color: var(--w-muted); margin: 8px 0 0; }
+.sw-tabela { width: 100%; border-collapse: collapse; font-size: 16px; margin: 8px 0; }
+.sw-tabela th, .sw-tabela td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--w-line); }
+.sw-tabela th { background: var(--w-bg); font-weight: 600; }
+.sw-tabela td:not(:first-child) { font-variant-numeric: tabular-nums; }
+.sw-faq details { border: 1px solid var(--w-line); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; background: #fff; }
+.sw-faq summary { cursor: pointer; font-weight: 600; }
+.sw-cta { display: flex; gap: 12px; flex-wrap: wrap; background: #fff; border: 1px solid var(--w-line); border-radius: 12px; padding: 24px; margin-top: 24px; align-items: center; }
+.sw-cta p { flex: 1 1 260px; margin: 0; }
+.sw-zrodlo { font-size: 14px; color: var(--w-muted); }
+
+/* lista świadczeń */
+.sw-siatka { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.sw-kafel { display: flex; flex-direction: column; gap: 8px; background: #fff; border: 1px solid var(--w-line); border-radius: 12px; padding: 22px; color: var(--w-ink); text-decoration: none; }
+a.sw-kafel:hover { border-color: var(--w-p); }
+.sw-kafel h2 { font-size: 19px; margin: 0; }
+.sw-kafel p { margin: 0; color: var(--w-muted); font-size: 15px; flex: 1; }
+.sw-kafel .wn-chip { margin-left: 0; align-self: flex-start; }
+.sw-kafel-ikona { width: 40px; height: 40px; border-radius: 50%; background: var(--w-p-soft); color: var(--w-p); display: grid; place-items: center; }
+.sw-kafel.wylaczony { opacity: .7; }
+.sw-kafel .wiecej { color: var(--w-p); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+
+/* =====================================================================
+   Moje sprawy i widok urzędnika
+   ===================================================================== */
+.sp-wniosek { display: grid; gap: 12px; }
+.sp-glowa { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.sp-glowa h2 { margin: 0; font-size: 20px; }
+.sp-glowa small { color: var(--w-muted); }
+.urz-pasek { background: var(--w-ink); color: #fff; }
+.urz-pasek .wrap { display: flex; align-items: center; gap: 12px; min-height: 52px; font-weight: 600; }
+.urz-pasek small { color: #b9c6d3; font-weight: 400; }
+.urz-uklad { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+.urz-lista { display: grid; gap: 8px; }
+.urz-pozycja { text-align: left; font: inherit; background: #fff; border: 1px solid var(--w-line); border-radius: 10px; padding: 14px; cursor: pointer; color: var(--w-ink); display: grid; gap: 4px; }
+.urz-pozycja.akt { border: 2px solid var(--w-p); }
+.urz-pozycja small { color: var(--w-muted); }
+.urz-pozycja .wn-chip { margin-left: 0; justify-self: start; }
+.urz-kontrole { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.urz-kontrole li { display: flex; gap: 10px; align-items: flex-start; }
+.urz-kontrole .ikona { flex: none; margin-top: 3px; border-radius: 50%; padding: 2px; }
+.urz-kontrole .ok .ikona { background: var(--w-acc); color: var(--w-ink); }
+.urz-kontrole .uwaga .ikona { background: var(--w-warn-soft); color: var(--w-warn); }
+.urz-kontrole .info .ikona { background: var(--w-p-soft); color: var(--w-p); }
+.urz-pole { display: grid; grid-template-columns: auto minmax(180px, 40%) 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid #edf1f5; align-items: start; }
+.urz-pole input { width: 20px; height: 20px; accent-color: var(--w-warn); margin-top: 3px; }
+.urz-pole dt { color: var(--w-muted); }
+.urz-pole dd { margin: 0; font-weight: 600; }
+.urz-pole.oznaczone { background: var(--w-warn-soft); border-radius: 6px; }
+.urz-textarea { width: 100%; min-height: 96px; border: 1px solid #9fb0c2; border-radius: 8px; padding: 10px 12px; font: inherit; }
+.urz-textarea:focus-visible { outline: 3px solid var(--w-p); outline-offset: 2px; }
+
+/* ---------- telefon ---------- */
+@media (max-width: 860px) {
+  .sw-uklad, .urz-uklad { grid-template-columns: 1fr; }
+  .sw-spis { display: none; }
+  .sw-spis-mobile { display: block; position: sticky; top: 0; z-index: 10; background: #fff; border: 1px solid var(--w-line); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; }
+  .sw-spis-mobile summary { font-weight: 600; cursor: pointer; }
+  .sw-spis-mobile ol { padding-left: 20px; margin: 8px 0 0; }
+  .sw-siatka, .sw-kwoty { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .wn h1 { font-size: 26px; }
+  .wn-karta { padding: 20px; }
+  .wn-wybor { grid-template-columns: 1fr; }
+  .wn-papier { padding: 20px 14px; }
+  .wn-pole { grid-template-columns: 28px 1fr; padding: 12px 6px; }
+  .wn-potw dl div, .wn-dl div, .urz-pole { grid-template-columns: 1fr; gap: 2px; }
+  .wn-hud-in { flex-wrap: wrap; }
+  .wn-hud-tytul { min-width: 0; flex: 1; }
+  .wn-pasek { flex-basis: 100%; order: 3; }
+  /* dymek zamienia się w panel przyklejony do dołu ekranu */
+  .wn-aktywne .wn-dymek { position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 60; max-width: none; max-height: 55vh; overflow: auto; box-shadow: 0 -8px 24px rgba(11, 31, 51, .2); }
+  .wn-dymek::before { display: none; }
+  .wn-obszar { padding-bottom: 50vh; }
+  .wn-btn-duzy { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wn-zaslona, .wn-dymek, .wn-potrzasnij { animation: none; }
+  .wn-pasek div { transition: none; }
+}
+
+@media print {
+  .proto, .topbar, .header, .modul-pasek, .footer, .sw-spis, .sw-spis-mobile, .sw-cta, .wn-okruszki { display: none !important; }
+  .sw-uklad { display: block; }
+}
+.wn-alert > .ikona { flex: none; margin-top: 2px; }
+
+/* v7 — nowe typy pól */
+.wn-pole input[type="number"], .wn-pole textarea { width: 100%; max-width: 560px; min-height: 44px; border: 1px solid #9fb0c2; border-radius: 6px; padding: 8px 12px; font: inherit; background: #fff; color: var(--w-ink); }
+.wn-pole input[type="number"] { max-width: 120px; }
+.wn-pole textarea { resize: vertical; line-height: 1.5; }
+.wn-pole textarea:focus-visible, .wn-pole input[type="number"]:focus-visible { outline: 3px solid var(--w-blue, #025ac4); outline-offset: 1px; }
+.wn-kiedy { background: #f3f8ec; border-left: 4px solid #8fd201; border-radius: 10px; padding: 12px 16px; margin: 0 0 16px; }
+.wn-kiedy b { display: block; margin-bottom: 4px; }
+.wn-kiedy ul { margin: 0; padding-left: 20px; }
+.wn-kiedy li + li { margin-top: 4px; }
+
+/* v8 — nieruchoma scena „prowadź mnie” (jedno pole, bez przewijania strony) */
+.wn-scena { position: fixed; inset: 0; z-index: 65; background: rgba(11, 31, 51, .55); display: grid; place-items: center; padding: 16px; overflow: hidden; animation: wn-zanik .15s ease-out; }
+.wn-scena-in { width: min(760px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: #f5f7fa; border-radius: 24px; padding: 20px 22px 24px; box-shadow: 0 30px 80px rgba(11, 31, 51, .4); }
+.wn-scena-glowa { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.wn-scena .wn-pasek { margin: 12px 0 14px; }
+.wn-scena-czesc { margin: 0 0 8px; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--w-blue, #025ac4); }
+.wn-scena-uwaga { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: #fff4e5; color: #5f3700; font-size: 15px; }
+.wn-scena-pole.wn-papier { margin: 0; padding: 18px 18px 6px; box-shadow: none; border-radius: 16px; }
+.wn-scena-pole .wn-pole.wn-aktywne { margin: 0; box-shadow: none; outline: 0; }
+.wn-po-przew { margin-bottom: 16px; }
+@media (max-width: 600px) { .wn-scena { padding: 0; } .wn-scena-in { border-radius: 0; max-height: 100vh; height: 100vh; } }
+
+/* v8 — gdzie trafi formularz */
+.wn-gdzie { border-radius: 14px; padding: 14px 16px; margin: 0 0 16px; background: #eef4fc; border: 1px solid #cfe0f5; }
+.wn-gdzie.pracodawca { background: #f6f3ff; border-color: #ddd3f7; }
+.wn-gdzie-glowa { display: flex; gap: 12px; align-items: center; }
+.wn-gdzie-glowa small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #536271; }
+.wn-gdzie-glowa b { font-size: 17px; }
+.wn-gdzie p { margin: 8px 0 0; font-size: 15px; }
+.wn-gdzie-dl { margin: 10px 0 0; display: grid; gap: 8px; }
+.wn-gdzie-dl div { display: grid; grid-template-columns: 130px 1fr; gap: 10px; padding-top: 8px; border-top: 1px solid rgba(0, 0, 0, .06); }
+.wn-gdzie-dl dt { display: flex; gap: 6px; align-items: center; font-weight: 700; font-size: 14px; }
+.wn-gdzie-dl dd { margin: 0; font-size: 15px; }
+.wn-gdzie-dl ul { margin: 0; padding-left: 18px; }
+@media (max-width: 560px) { .wn-gdzie-dl div { grid-template-columns: 1fr; gap: 2px; } }
