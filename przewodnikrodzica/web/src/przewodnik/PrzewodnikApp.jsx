@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { SesjaProvider, useSesja } from "./SesjaContext.jsx";
 import Start from "./ekrany/Start.jsx";
 import LoginGov from "./ekrany/LoginGov.jsx";
@@ -16,6 +17,7 @@ import Ryzyka from "./ekrany/Ryzyka.jsx";
 import MojeSprawy from "./ekrany/MojeSprawy.jsx";
 import Urzednik from "./ekrany/Urzednik.jsx";
 import Sciezka from "./ekrany/Sciezka.jsx";
+import KontoPUE from "./ekrany/KontoPUE.jsx";
 import WniosekZAM from "./wniosek/WniosekZAM.jsx";
 import PasekModulu from "./komponenty/PasekModulu.jsx";
 import PrzewodnikPowitalny from "./komponenty/PrzewodnikPowitalny.jsx";
@@ -28,6 +30,29 @@ import { maZadluzenie } from "./komponenty/Zadluzenie.jsx";
 import "./przewodnik.css";
 import "./wniosek/wniosek.css";
 import "./wyglad.css";
+
+// Czytnik ekranu: po zmianie strony ogłaszamy jej tytuł i przenosimy fokus na nagłówek (WCAG 2.4.3, 4.1.3)
+function OgloszenieStrony() {
+  const { pathname } = useLocation();
+  const [tekst, setTekst] = useState("");
+  useEffect(() => {
+    if (!window.location.hash) window.scrollTo(0, 0); // nowa strona zaczyna się od góry
+    const tm = setTimeout(() => {
+      const h1 = document.querySelector(".modul h1");
+      const nazwa = h1?.innerText?.replace(/\s+/g, " ").trim();
+      if (nazwa) {
+        document.title = `${nazwa} — Przewodnik Młodego Rodzica`;
+        setTekst(`Strona: ${nazwa}`);
+        if (!window.location.hash && document.activeElement === document.body) {
+          h1.setAttribute("tabindex", "-1");
+          h1.focus({ preventScroll: true });
+        }
+      }
+    }, 150);
+    return () => clearTimeout(tm);
+  }, [pathname]);
+  return <div className="sr-only" role="status" aria-live="polite">{tekst}</div>;
+}
 
 // Strony dostępne tylko po zalogowaniu: pasek modułu + ? + przewodnik ponownie
 function Zalogowany({ children }) {
@@ -43,6 +68,7 @@ function Zalogowany({ children }) {
   if (!onboardingZakonczony) return <Navigate to="/przewodnik/witaj" replace />;
   return (
     <div className={`modul ${maZadluzenie(zus) ? "zadluzony" : ""}`}>
+      <OgloszenieStrony />
       <PasekModulu />
       {maZadluzenie(zus) && <PasekZadluzenia zus={zus} />}
       {jezyk !== "pl" && (
@@ -98,6 +124,7 @@ export default function PrzewodnikApp() {
         <Route path="pomoc" element={chron(<Wsparcie rodzaj="pomoc" />)} />
         <Route path="swiadczenia/:id" element={chron(<PrzewodnikSwiadczenia />)} />
         <Route path="ryzyka" element={chron(<Ryzyka />)} />
+        <Route path="konto-pue" element={chron(<KontoPUE />)} />
         <Route path="wnioski" element={chron(<ZlozWniosek />)} />
         <Route path="wnioski/:symbol" element={chron(<KreatorFormularza />)} />
         <Route path="wsparcie" element={<Navigate to="/przewodnik/pomoc" replace />} />

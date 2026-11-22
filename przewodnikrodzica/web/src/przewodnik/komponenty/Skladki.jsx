@@ -20,7 +20,7 @@ export function stanNaDzien(zus, dzien) {
 /** Podpowiedzi „dnia powstania prawa” z danych, które już mamy. */
 export function dniPowstaniaPrawa(sesja, zus) {
   const wynik = [];
-  const l4 = aktualneZwolnienie(zus);
+  const l4 = aktualneZwolnienie(zus, { etap: sesja.etap, ankieta: sesja.ankieta || {}, data: sesja.etap === "ciaza" ? sesja.terminPorodu : null });
   if (l4) wynik.push({ data: l4.od, opis: "zasiłek chorobowy — początek obecnego zwolnienia" });
   const porod = sesja.etap === "dziecko" ? sesja.dataPorodu : sesja.terminPorodu;
   if (porod) wynik.push({ data: porod, opis: sesja.etap === "dziecko" ? "zasiłek macierzyński — dzień porodu" : "zasiłek macierzyński — planowany dzień porodu" });

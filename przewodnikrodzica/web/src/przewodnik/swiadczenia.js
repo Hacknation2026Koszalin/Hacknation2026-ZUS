@@ -56,6 +56,7 @@ export const WSTRZYMANE_PRZY_ZADLUZENIU = ["zasilek-macierzynski", "chorobowy-ci
 
 export const POMOC = [
   { id: "kontakt-zus", nazwa: "Kontakt z ZUS", opis: "Centrum Obsługi Telefonicznej: 22 560 16 00 (dni robocze 7:00–18:00). E-wizytę umówisz w eZUS, mZUS albo mObywatelu.", ikona: "poczta" },
+  { id: "konto-pue", nazwa: "Konto PUE/eZUS", opis: "Sprawdź dane, które ZUS ma na Twoim koncie (składki, zwolnienia, płatnik), i zadaj pytanie konsultantowi.", ikona: "tarcza", link: "/przewodnik/konto-pue" },
   { id: "mama-zus", nazwa: "Skrzynka mama@zus.pl", opis: "Napisz o swojej sprawie — pytania o zasiłki i formalności po narodzinach dziecka. Ogólne pytania: cot@zus.pl.", ikona: "poczta" },
   { id: "zusanna", nazwa: "Zapytaj ZUSannę", opis: "Asystentka w prawym dolnym rogu odpowie od razu — o terminy, kwoty i wnioski.", ikona: "dymek", akcja: "zusanna" },
   { id: "samouczek", nazwa: "Samouczek", opis: "Krótki pokaz, jak działa przewodnik i gdzie co znajdziesz.", ikona: "info", akcja: "samouczek" },

@@ -212,3 +212,16 @@ Działa bez backendu (zapis w przeglądarce). Z backendem wnioski trzymane są w
 - SW-800: wniosek o 800+ (do ZUS, wypłata tylko na konto).
 - Kalkulator: od razu liczy z podstawy z ZUS, pigułki z ✓, suwaki z przyciskami −/+, zaznaczony wybrany przykład.
 - Poprawki: kółka osi wyśrodkowane, przycisk „Złóż wniosek” w przewodnikach, zielone linki i logo bez tła w stopce, bez „Nowość”, tekstów o hasłach i „według danych ZUS”.
+
+## Zmiany v12
+- **Status zwolnienia** zależy od odpowiedzi z ankiety: forma pracy (kto wypłaca), ubezpieczenie chorobowe (bez niego — informacja, że zasiłku nie będzie), etap „Planuję” (brak L4 z kodem B) i termin porodu (zwolnienie kończy się dzień przed porodem). Daty liczone względem dzisiaj (`zwolnieniaDlaSytuacji` w `komponenty/Zwolnienie.jsx`).
+- **Nagłówek publiczny**: bez „Szukaj”, „Unia Europejska” i „Zarejestruj w PUE/eZUS” — wszystko się mieści.
+- **Okno długu „Co mam zrobić?”** renderowane w `<body>` (portal) — wcześniej dziedziczyło biały tekst z czerwonego paska.
+- **Konto PUE/eZUS** (`/przewodnik/konto-pue`, `ekrany/KontoPUE.jsx`): symulacja połączenia, dane z konta (dane osobowe, ubezpieczenia, składki 6 mies., e-ZLA), „Nie zgadza się?” przy każdej danej i formularz „Zapytaj ZUS” z odpowiedzią konsultanta (symulacja).
+- **Karuzela**: każda karta ma własną ilustrację (`web/public/karty/*.svg`). Zdjęcie można podmienić w `ZDJECIA` w `Pulpit.jsx`.
+- **Tłumaczenia**: tłumacz strony (`tlumaczDOM.js` + słownik `tlumaczenia.js`) tłumaczy wszystkie teksty ze słownika, także daty i teksty z liczbami (wzorce). Nowy tekst = nowy wiersz `PL|EN|UK`.
+- **Moje sprawy**: zakładki statusów z licznikami (w trakcie / do poprawy / przyjęte / zakończone), filtry (szukaj, kategoria, gdzie złożono, data, kolejność), widok „Według kategorii”, przykładowe sprawy z PUE/eZUS.
+- **Dostępność**: kontrast żółty na czarnym i czarny na żółtym, kolory dla daltonistów (czerwony–zielony, niebieski–żółty), czytanie na głos (strona / po kliknięciu), czytelna czcionka, linijka do czytania, duży kursor, wyraźny fokus, ukrywanie obrazków, link do tłumacza PJM, ogłaszanie zmiany strony czytnikom ekranu.
+- **Kalkulator**: jeden panel na środku z numerowanymi krokami, liczniki −/+, pasek podziału urlopu między rodziców, wynik na dole i pływający pasek „Łącznie ok. … · Zobacz wynik”.
+- **Kalkulator**: wybór „100% + 70%” albo „81,5% przez cały rok” jako opcje do wyboru (zamiast pola wyboru).
+- **Wersje robocze wniosków** (`wniosek/robocze.js`): przycisk „Zapisz wersję roboczą” w pasku każdego kreatora (także w trybie prowadzenia), „Zapisz i dokończ później” na ekranach braków i podglądu. Po pierwszym zapisie zmiany zapisują się same. Wersje robocze widać w „Moich sprawach” (Dokończ / Usuń), na liście wniosków i na ekranie startowym wniosku.

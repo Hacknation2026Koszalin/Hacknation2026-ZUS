@@ -91,19 +91,21 @@ function Tarcza({ zostalo, okno }) {
 }
 
 
-// Zdjęcia kart „Co możesz zrobić”: [plik z folderu public, kadr].
-// Podmień na własne zdjęcia (np. /karty/data.jpg) — wystarczy wrzucić plik do web/public/karty.
+// Obrazki kart „Co możesz zrobić” — każda karta ma własną ilustrację pasującą do treści.
+// [plik z web/public, kadr]. Chcesz zdjęcie? Wrzuć np. /karty/data.jpg i podmień ścieżkę.
 const ZDJECIA = {
-  data: ["/powitanie.jpg", "62% 40%"],
-  sciezka: ["/hero.jpg", "35% 30%"],
-  sprawa: ["/powitanie.jpg", "80% 30%"],
-  kalk: ["/hero.jpg", "70% 25%"],
-  wniosek: ["/powitanie.jpg", "45% 55%"],
-  rodz: ["/hero.jpg", "50% 40%"],
-  wsparcie: ["/powitanie.jpg", "30% 40%"],
-  asystent: ["/hero.jpg", "55% 20%"],
-  zadluzenie: ["/powitanie.jpg", "55% 35%"],
-  domyslne: ["/hero.jpg", "50% 40%"],
+  data: ["/karty/data.svg", "50% 30%"],
+  sciezka: ["/karty/sciezka.svg", "50% 8%"],
+  sprawa: ["/karty/sprawa.svg", "50% 45%"],
+  kalk: ["/karty/kalk.svg", "50% 50%"],
+  wniosek: ["/karty/wniosek.svg", "50% 45%"],
+  rodz: ["/karty/rodz.svg", "50% 50%"],
+  wsparcie: ["/karty/wsparcie.svg", "50% 55%"],
+  asystent: ["/karty/asystent.svg", "50% 50%"],
+  zadluzenie: ["/karty/zadluzenie.svg", "50% 55%"],
+  umowa: ["/karty/umowa.svg", "50% 50%"],
+  pue: ["/karty/pue.svg", "50% 50%"],
+  domyslne: ["/karty/domyslne.svg", "50% 50%"],
 };
 
 export default function Pulpit() {
@@ -158,6 +160,7 @@ export default function Pulpit() {
     karty.push({ id: "wsparcie", kolor: "bialy", ikona: "serce", tytul: "Pomoc dla Ciebie", opis: "Kontakty do wsparcia psychologicznego.", link: "/przewodnik/pomoc#organizacje", cta: "Pomoc" });
   if (!strata && /umowa o pracę/.test(zus?.ubezpieczenie?.tytul || "") && !sesja.ustanie?.data)
     karty.push({ id: "umowa", kolor: "bialy", ikona: "teczka", tytul: "Kończy się Twoja umowa?", opis: "Dodaj datę — sprawdzimy, czy przedłuży się do porodu i co z zasiłkiem.", akcja: () => window.dispatchEvent(new Event("otworz-ustawienia")), cta: "Dodaj datę" });
+  karty.push({ id: "pue", kolor: "bialy", ikona: "tarcza", tytul: "Sprawdź dane na koncie PUE/eZUS", opis: "Składki, zwolnienia i płatnik — a gdy coś się nie zgadza, zapytaj ZUS.", link: "/przewodnik/konto-pue", cta: "Konto PUE/eZUS" });
   karty.push({ id: "asystent", kolor: "gradient", ikona: "dymek", tytul: "Asystent ZUSanna podpowie Ci", opis: "Zapytaj własnymi słowami o urlopy, zasiłki i wnioski.", akcja: () => window.dispatchEvent(new Event(OTWORZ_ZUSANNE)), cta: "Zapytaj ZUSannę" });
   if (zadluzony)
     karty.unshift({ id: "zadluzenie", kolor: "bialy sh-zadluzenie", ikona: "alert", tytul: "Spłać zaległość, by dostać zasiłek", opis: `Zaległość w składkach: ${kwota(zus.zadluzenie)}.`, akcja: () => setModalZad(true), cta: "Co to oznacza?" });
@@ -274,7 +277,7 @@ export default function Pulpit() {
       <KartaUmowy ustanie={sesja.ustanie} etap={etap} terminPorodu={sesja.terminPorodu} onZmien={() => window.dispatchEvent(new Event("otworz-ustawienia"))} />
 
       {/* ===================== STATUS ZWOLNIENIA (tylko gdy ma sens na tym etapie) ===================== */}
-      {pokazZwolnienie({ etap, ankieta, data, dzis }) && <StatusZwolnienia zus={zus} etap={etap} data={data} />}
+      {pokazZwolnienie({ etap, ankieta, data, dzis }) && <StatusZwolnienia zus={zus} etap={etap} data={data} ankieta={ankieta} />}
 
       {/* ===================== CO MOŻESZ ZROBIĆ ===================== */}
       <section className="sh-sekcja" aria-labelledby="sh-tytul">

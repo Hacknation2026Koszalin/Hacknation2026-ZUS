@@ -28,7 +28,7 @@ const RYZYKA = [
   {
     grupa: "utrata", tytul: "Praca w czasie zwolnienia lekarskiego",
     tekst: () => "Wykonywanie pracy zarobkowej albo wykorzystywanie zwolnienia niezgodnie z jego celem oznacza utratę zasiłku chorobowego za cały okres tego zwolnienia. ZUS i pracodawca mogą to skontrolować.",
-    dotyczy: (c) => (aktualneZwolnienie(c.zus) ? "Jesteś teraz na zwolnieniu lekarskim." : null),
+    dotyczy: (c) => (aktualneZwolnienie(c.zus, c.l4) ? "Jesteś teraz na zwolnieniu lekarskim." : null),
   },
   {
     grupa: "utrata", tytul: "Koniec umowy o pracę w ciąży",
@@ -84,7 +84,7 @@ const RYZYKA = [
   {
     grupa: "terminy", tytul: "Wniosek o świadczenie rehabilitacyjne przed końcem zasiłku",
     tekst: () => "Złóż go około 6 tygodni przed wyczerpaniem zasiłku chorobowego — inaczej możesz mieć przerwę w pieniądzach.",
-    dotyczy: (c) => (aktualneZwolnienie(c.zus) ? "Jesteś na zwolnieniu — przy długiej chorobie pamiętaj o tym terminie." : null),
+    dotyczy: (c) => (aktualneZwolnienie(c.zus, c.l4) ? "Jesteś na zwolnieniu — przy długiej chorobie pamiętaj o tym terminie." : null),
   },
 ];
 
@@ -99,7 +99,8 @@ export default function Ryzyka() {
   const [, t] = useJezyk();
   const zus = sesja.zus || DANE_ZUS_ZAPAS;
   const ankieta = sesja.ankieta || {};
-  const ctx = { zus, ankieta, etap: sesja.etap, ustanie: sesja.ustanie, sytuacja: ocenSytuacje(ankieta, zus, sesja.etap) };
+  const l4 = { etap: sesja.etap, ankieta, data: sesja.etap === "ciaza" ? sesja.terminPorodu : null };
+  const ctx = { zus, ankieta, l4, etap: sesja.etap, ustanie: sesja.ustanie, sytuacja: ocenSytuacje(ankieta, zus, sesja.etap) };
   const lista = RYZYKA.map((r) => ({ ...r, powod: r.dotyczy(ctx) }));
   const twoje = lista.filter((r) => r.powod);
 

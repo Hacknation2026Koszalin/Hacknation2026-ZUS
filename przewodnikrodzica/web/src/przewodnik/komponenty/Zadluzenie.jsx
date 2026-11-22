@@ -4,6 +4,7 @@
 // wynagrodzenia — do czasu spłaty całości. Spłata w ciągu 6 miesięcy = zasiłek za cały okres.
 // Układ ratalny / odroczenie spłacane w terminie = brak zadłużenia.
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Ikona from "../wniosek/Ikona.jsx";
 import { useSesja } from "../SesjaContext.jsx";
 import { PROFIL_MOBYWATEL } from "../dane.js";
@@ -40,7 +41,8 @@ export function ZadluzenieModal({ zus, onZamknij }) {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [onZamknij]);
-  return (
+  // Portal do <body>: modal nie dziedziczy białego tekstu z czerwonego paska ostrzeżenia
+  return createPortal(
     <div className="dk-tlo" onClick={onZamknij}>
       <div className="dk-okno zd-okno" role="alertdialog" aria-modal="true" aria-labelledby="zd-tytul" aria-describedby="zd-opis" onClick={(e) => e.stopPropagation()}>
         <span className="zd-ikona"><Ikona n="alert" rozmiar={30} /></span>
@@ -71,7 +73,8 @@ export function ZadluzenieModal({ zus, onZamknij }) {
         </div>
       </div>
       {zaswiadczenie && <ZaswiadczenieModal zus={zus} profil={sesja.profil || PROFIL_MOBYWATEL} dzien={zaswiadczenie} onZamknij={() => setZaswiadczenie(null)} />}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

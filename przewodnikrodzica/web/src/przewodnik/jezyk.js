@@ -4,6 +4,7 @@
 // przy EN/UK pokazujemy o tym komunikat. Nowy tekst = nowy klucz w SLOWNIK.
 // =====================================================================
 import { useEffect, useState } from "react";
+import { ustawJezykStrony } from "./tlumaczDOM.js";
 
 export const JEZYKI = [
   ["pl", "PL", "Polski"],
@@ -78,8 +79,8 @@ const SLOWNIK = {
   "Zapytaj własnymi słowami…": { en: "Ask in your own words…", uk: "Запитайте своїми словами…" },
   // komunikat o treściach
   "tylko-po-polsku": {
-    en: "The interface is in English. Detailed guides and forms are currently available in Polish only.",
-    uk: "Інтерфейс українською. Детальні путівники та форми поки що доступні лише польською мовою.",
+    en: "The interface is in English. Long legal texts and official forms stay in Polish — we explain them in plain language.",
+    uk: "Інтерфейс українською. Довгі юридичні тексти та офіційні форми залишаються польською — ми пояснюємо їх простою мовою.",
   },
 };
 
@@ -92,7 +93,7 @@ const czytaj = () => {
 };
 
 let aktualny = czytaj();
-if (typeof document !== "undefined") document.documentElement.lang = aktualny;
+if (typeof document !== "undefined") { document.documentElement.lang = aktualny; ustawJezykStrony(aktualny); }
 
 export function ustawJezyk(k) {
   aktualny = k;
@@ -103,6 +104,7 @@ export function ustawJezyk(k) {
   }
   document.documentElement.lang = k;
   window.dispatchEvent(new Event(ZDARZENIE));
+  ustawJezykStrony(k);
 }
 
 /** Tłumaczenie: klucz to polski tekst (albo nazwa klucza z wersją `pl`). */

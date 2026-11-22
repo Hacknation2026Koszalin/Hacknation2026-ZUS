@@ -4,32 +4,18 @@ import {
   Link,
   NavLink,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 import { MENU } from "../data/nawigacja.js";
 import { PrzyciskDostepnosci } from "../przewodnik/komponenty/Dostepnosc.jsx";
 import { JEZYKI, ustawJezyk, useJezyk } from "../przewodnik/jezyk.js";
 
-// Flaga UE (rysowana — 12 gwiazd na niebieskim tle)
-const FlagaUE = () => (
-  <svg width="46" height="31" viewBox="0 0 46 31" aria-hidden="true">
-    <rect width="46" height="31" fill="#039" />
-    {Array.from({ length: 12 }, (_, i) => {
-      const a = (i / 12) * 2 * Math.PI;
-      return <circle key={i} cx={23 + 9 * Math.sin(a)} cy={15.5 - 9 * Math.cos(a)} r="1.3" fill="#fc0" />;
-    })}
-  </svg>
-);
 
 export default function Header({ bezMenu = false }) {
   const [otwarte, setOtwarte] = useState(null);
   const [mobilne, setMobilne] = useState(false);
-  const [fraza, setFraza] = useState("");
-  const [szukajOtwarte, setSzukajOtwarte] = useState(false);
   const [jezyk, t] = useJezyk();
 
   const lokalizacja = useLocation();
-  const nawiguj = useNavigate();
   const headerRef = useRef(null);
 
   useEffect(() => {
@@ -63,17 +49,6 @@ export default function Header({ bezMenu = false }) {
       document.removeEventListener("pointerdown", klikPoza);
     };
   }, []);
-
-  const szukaj = (event) => {
-    event.preventDefault();
-    const query = fraza.trim();
-
-    if (!query) return;
-
-    nawiguj(`/szukaj?q=${encodeURIComponent(query)}`);
-    setOtwarte(null);
-    setMobilne(false);
-  };
 
   return (
     <header className={`zus-header ${bezMenu ? "zus-header--konto" : ""}`} ref={headerRef}>
@@ -123,14 +98,8 @@ export default function Header({ bezMenu = false }) {
               </a>
               <span className="zh-kwadrat-wrap"><PrzyciskDostepnosci ikona /></span>
               <a href="https://bip.zus.pl" target="_blank" rel="noreferrer" className="zh-bip" aria-label="Biuletyn Informacji Publicznej"><span aria-hidden="true">◥</span>bip</a>
-              <a href="https://www.zus.pl" target="_blank" rel="noreferrer" className="zh-btn zh-btn-obrys">{t("Zarejestruj w PUE/eZUS")} <span aria-hidden="true">›</span></a>
               <a href="https://www.zus.pl" target="_blank" rel="noreferrer" className="zh-btn zh-btn-pue">{t("Zaloguj do PUE/eZUS")} <span aria-hidden="true">›</span></a>
               <Link to="/przewodnik" className="zh-btn zh-btn-przewodnik">{t("Zaloguj do Przewodnika Młodego Rodzica")} <span aria-hidden="true">›</span></Link>
-              <button type="button" className="zh-szukaj" aria-expanded={szukajOtwarte} onClick={() => setSzukajOtwarte((o) => !o)}>
-                <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="17" cy="17" r="15" /><circle cx="15.5" cy="15.5" r="6" /><path d="m20 20 5 5" /></svg>
-                <span>{t("Szukaj")}</span>
-              </button>
-              <span className="zh-ue"><FlagaUE /><span>{t("Unia Europejska")}</span></span>
             </div>
           )}
 
@@ -169,18 +138,6 @@ export default function Header({ bezMenu = false }) {
           </button>}
         </div>
       </div>
-
-      {!bezMenu && szukajOtwarte && (
-        <div className="zh-szukaj-pas">
-          <form className="wrap zus-header__search zh-szukaj-form" role="search" onSubmit={szukaj}>
-            <label htmlFor="zus-search" className="sr-only">Szukaj w serwisie</label>
-            <input id="zus-search" type="search" autoFocus placeholder="Czego szukasz? np. zasiłek macierzyński" value={fraza} onChange={(e) => setFraza(e.target.value)} />
-            <button type="submit" aria-label="Szukaj">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.2" /><path d="m16.2 16.2 4.3 4.3" /></svg>
-            </button>
-          </form>
-        </div>
-      )}
 
       {!bezMenu && <nav
         id="zus-navigation"

@@ -11,6 +11,7 @@ import { tekstNieDotyczy, tekstPodpowiedzi } from "./formularz.js";
 import { blad, braki, czyWidoczne, czyWymagane, pokazWartosc, postep, widocznePola, wyczysc } from "./silnik.js";
 import { pobierzWnioski, wyslijWniosek } from "./wnioski.js";
 import Papier from "./Papier.jsx";
+import { fmtZapisu, usunWersjeRobocza, wersjaRobocza, zapiszWersjeRobocza } from "./robocze.js";
 import Ikona from "./Ikona.jsx";
 import "./wniosek.css";
 
@@ -81,7 +82,10 @@ export default function Kreator({ def }) {
     [sesja.profil, sesja.zus, sesja.terminPorodu, sesja.dataPorodu],
   );
 
-  const szkic = wczytajSzkic(def);
+  const pesel = (sesja.profil || PROFIL_MOBYWATEL).pesel;
+  // Najpierw szkic z tej karty (odświeżenie strony), potem zapisana wersja robocza
+  const robocza = useMemo(() => wersjaRobocza(pesel, def.symbol), [pesel, def.symbol]);
+  const szkic = wczytajSzkic(def) || robocza?.dane;
   // Bez szkicu: wpisujemy to, co osoba już nam podała (rola z ankiety, opcjonalna data)
   const [w, setW] = useState(
     szkic?.w || wartosciStartowe(sesja),
@@ -100,6 +104,8 @@ export default function Kreator({ def }) {
   const [wysylanie, setWysylanie] = useState(false);
   const [wyslany, setWyslany] = useState(null);
   const [poPrzewodniku, setPoPrzewodniku] = useState(false);
+  const [zapisano, setZapisano] = useState(robocza?.zapisano || null); // kiedy zapisano wersję roboczą
+  const [komunikatZapisu, setKomunikatZapisu] = useState(false);
   const gora = useRef(null);
 
   // Zapis szkicu (żeby odświeżenie strony nie kasowało wpisanych danych)
@@ -229,7 +235,31 @@ export default function Kreator({ def }) {
     setAktywne(zPrzewodnikiem ? widocznePola(w, ctx, POLA)[0].id : null);
   };
 
+  // Zapis wersji roboczej — dostępny w każdej chwili wypełniania
+  const zapiszRobocza = () => {
+    const wpis = zapiszWersjeRobocza(pesel, def, { w, pominiete, numer, uwaga: uwagaUrzednika }, postep(w, ctx, POLA));
+    setZapisano(wpis.zapisano);
+    setKomunikatZapisu(true);
+  };
+  useEffect(() => {
+    if (!komunikatZapisu) return;
+    const t = setTimeout(() => setKomunikatZapisu(false), 7000);
+    return () => clearTimeout(t);
+  }, [komunikatZapisu]);
+  // Gdy wersja robocza już istnieje, aktualizujemy ją po każdej zmianie (nic nie przepadnie)
+  useEffect(() => {
+    if (!zapisano || etap === "wyslano") return;
+    const t = setTimeout(() => {
+      const wpis = zapiszWersjeRobocza(pesel, def, { w, pominiete, numer, uwaga: uwagaUrzednika }, postep(w, ctx, POLA));
+      setZapisano(wpis.zapisano);
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [w, pominiete]);
+
   const odNowa = () => {
+    usunWersjeRobocza(pesel, def.symbol);
+    setZapisano(null);
     setW(wartosciStartowe(sesja));
     setPominiete([]);
     setNumer(null);
@@ -262,6 +292,8 @@ export default function Kreator({ def }) {
     } catch {
       /* nic */
     }
+    usunWersjeRobocza(pesel, def.symbol);
+    setZapisano(null);
     setWysylanie(false);
     setWyslany(wynik);
     setEtap("wyslano");
@@ -335,9 +367,12 @@ export default function Kreator({ def }) {
                 <Ikona n="info" /> {uwagaStart}
               </p>
             )}
-            {zaczety && (
+            {(zaczety || zapisano) && (
               <div className="wn-szkic">
-                <span><Ikona n="zegar" /> Masz zapisany szkic: {gotowe} z {wszystkie} wymaganych pól.</span>
+                <span>
+                  <Ikona n="zegar" />{" "}
+                  {zapisano ? <>Masz wersję roboczą zapisaną {fmtZapisu(zapisano)}: {gotowe} z {wszystkie} wymaganych pól. Kontynuuj poniżej.</> : <>Masz zapisany szkic: {gotowe} z {wszystkie} wymaganych pól.</>}
+                </span>
                 <button type="button" className="wn-link" onClick={odNowa}>Zacznij od nowa</button>
               </div>
             )}
@@ -365,10 +400,14 @@ export default function Kreator({ def }) {
                     {kolejka ? "Poprawiasz wybrane pola" : `${gotowe} z ${wszystkie} wymaganych pól`}
                     {pominiete.length > 0 && <span className="wn-chip uwaga">Pominięte: {pominiete.length}</span>}
                   </span>
+                  {zapisano && <small className="wn-hud-zapis"><Ikona n="check" rozmiar={12} /> Wersja robocza: {fmtZapisu(zapisano)}</small>}
                 </div>
                 <div className="wn-pasek" role="progressbar" aria-valuemin={0} aria-valuemax={wszystkie} aria-valuenow={gotowe} aria-label="Postęp wypełniania">
                   <div style={{ width: `${wszystkie ? (gotowe / wszystkie) * 100 : 0}%` }} />
                 </div>
+                <button type="button" className="wn-btn wn-btn-drugi wn-btn-maly wn-zapisz" onClick={zapiszRobocza} title="Zapisz wersję roboczą i wróć do niej później">
+                  <Ikona n="plik" rozmiar={16} /> Zapisz wersję roboczą
+                </button>
                 <button
                   type="button"
                   className="wn-btn wn-btn-drugi wn-btn-maly"
@@ -387,6 +426,15 @@ export default function Kreator({ def }) {
                 </button>
               </div>
             </div>
+
+            {komunikatZapisu && (
+              <div className="wn-zapis-toast" role="status" aria-live="polite">
+                <Ikona n="check" rozmiar={20} />
+                <span><b>Zapisano wersję roboczą.</b> Wrócisz do niej z „Moich spraw” albo z listy wniosków. Dalsze zmiany zapisujemy na bieżąco.</span>
+                <button type="button" className="wn-btn wn-btn-drugi wn-btn-maly" onClick={() => nav("/przewodnik/sprawy")}>Wyjdź i dokończ później</button>
+                <button type="button" className="wn-zapis-x" onClick={() => setKomunikatZapisu(false)} aria-label="Zamknij komunikat">×</button>
+              </div>
+            )}
 
             {poPrzewodniku && (
               <div className="wn-alert ok wn-po-przew">
@@ -489,6 +537,9 @@ export default function Kreator({ def }) {
               <button type="button" className="wn-btn wn-btn-drugi wn-btn-duzy" onClick={() => { setProwadz(false); setPokazBledy(true); setEtap("wypelnianie"); }}>
                 Wróć do formularza
               </button>
+              <button type="button" className="wn-btn wn-btn-tekst" onClick={() => { zapiszRobocza(); nav("/przewodnik/sprawy"); }}>
+                <Ikona n="plik" rozmiar={18} /> Zapisz i dokończ później
+              </button>
             </div>
           </div>
         )}
@@ -542,6 +593,9 @@ export default function Kreator({ def }) {
             <div className="wn-akcje-dol">
               <button type="button" className="wn-btn wn-btn-drugi wn-btn-duzy" onClick={() => { setProwadz(false); setEtap("wypelnianie"); }}>
                 <Ikona n="wstecz" /> Wróć do poprawy
+              </button>
+              <button type="button" className="wn-btn wn-btn-drugi wn-btn-duzy" onClick={() => { zapiszRobocza(); nav("/przewodnik/sprawy"); }}>
+                <Ikona n="plik" /> Zapisz i dokończ później
               </button>
               <button type="button" className="wn-btn wn-btn-glowny wn-btn-duzy" onClick={() => (brakujace.length ? setEtap("braki") : setEtap("podpis"))}>
                 Wszystko się zgadza — akceptuję

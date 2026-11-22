@@ -98,6 +98,7 @@ export default function PasekModulu() {
           />
           <NavLink to="/przewodnik/kalkulator"><Ikona n="kalkulator" rozmiar={18} /> {t("Kalkulator")}</NavLink>
           <NavLink to="/przewodnik/sprawy"><Ikona n="teczka" rozmiar={18} /> {t("Moje sprawy")}</NavLink>
+          <NavLink to="/przewodnik/konto-pue"><Ikona n="tarcza" rozmiar={18} /> {t("PUE/eZUS")}</NavLink>
           <Rozwijane nazwa={t("Pomoc")} ikona="kolo" do="/przewodnik/pomoc" aktywne={pathname.startsWith("/przewodnik/pomoc")} pozycje={POMOC} onAkcja={akcja} />
         </nav>
         {(() => {

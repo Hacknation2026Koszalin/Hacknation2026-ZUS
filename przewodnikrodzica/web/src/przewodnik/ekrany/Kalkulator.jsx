@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSesja } from "../SesjaContext.jsx";
 import {
   oblicz,
@@ -146,379 +146,239 @@ export default function Kalkulator() {
   const wczytaj = (z) => { setZestaw(z.id); ustaw({ ...START, kwotaTyp: "brutto", ...z.stan }); };
   const zusPodstawa = zus?.podstawaWymiaru;
 
+  // Pasek z wynikiem na dole ekranu — znika, gdy widać już pełny wynik
+  const wynikRef = useRef(null);
+  const [wynikWidac, setWynikWidac] = useState(false);
+  useEffect(() => {
+    const el = wynikRef.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setWynikWidac(e.isIntersecting), { threshold: 0.1 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const doWyniku = () => wynikRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const macM = Math.min(Math.max(f.macMatka, macMin), maxMac);
+  const rodM = Math.min(Math.max(f.rodMatka, NIEPRZENOSZALNE_ROD_TYG), Math.max(NIEPRZENOSZALNE_ROD_TYG, pula - NIEPRZENOSZALNE_ROD_TYG));
   return (
-    <div className="wrap page kalk">
-      <h1>Kalkulator zasiłku macierzyńskiego</h1>
-      <p className="lead">
-        Sprawdź, jak długo i w jakiej wysokości przysługuje zasiłek – dla
-        jednego rodzica lub obojga.
-      </p>
-
-      <div className="kalk-zestawy" role="group" aria-label="Gotowe przykłady">
-        <span className="muted small">Wczytaj przykład:</span>
-        {ZESTAWY.map((z) => (
-          <button
-            key={z.id}
-            type="button"
-            className={`kalk-chip ${zestaw === z.id ? "aktywny" : ""}`}
-            aria-pressed={zestaw === z.id}
-            onClick={() => wczytaj(z)}
-          >
-            {z.nazwa}
-          </button>
-        ))}
+    <div className="wrap page kalk kk">
+      <div className="kk-glowa">
+        <h1>Kalkulator zasiłku macierzyńskiego</h1>
+        <p className="lead">Ustaw kilka rzeczy krok po kroku. Wynik zobaczysz na dole — zmienia się od razu.</p>
+        <label className="kk-przyklad">
+          <span>Albo wczytaj przykład:</span>
+          <select value={zestaw || ""} onChange={(e) => { const z = ZESTAWY.find((x) => x.id === e.target.value); if (z) wczytaj(z); }}>
+            <option value="">— wybierz przykład —</option>
+            {ZESTAWY.map((z) => <option key={z.id} value={z.id}>{z.nazwa}</option>)}
+          </select>
+        </label>
       </div>
 
-      <div className="kalk-uklad">
-        <form className="kalk-formularz" onSubmit={(e) => e.preventDefault()}>
-          <fieldset className="karta kalk-sekcja">
-            <legend className="karta-h">Dziecko</legend>
-            <Radio
-              name="sytuacja"
-              wart={f.sytuacja}
-              onChange={(v) => ustaw({ sytuacja: v })}
-              opcje={[
-                ["urodzenie", "Urodzenie dziecka"],
-                ["przysposobienie", "Przyjęcie dziecka na wychowanie"],
-              ]}
-            />
+      <form className="kk-karta" onSubmit={(e) => e.preventDefault()} aria-label="Ustawienia kalkulatora">
+        <Krok nr={1} tytul="Dziecko" opis="Urodzenie czy przyjęcie na wychowanie i ile dzieci.">
+          <Radio name="sytuacja" wart={f.sytuacja} onChange={(v) => ustaw({ sytuacja: v })}
+            opcje={[["urodzenie", "Urodzenie dziecka"], ["przysposobienie", "Przyjęcie na wychowanie"]]} />
+          <div className="kk-siatka">
             <Pole etykieta="Liczba dzieci">
-              <select
-                value={f.dzieci}
-                onChange={(e) => ustaw({ dzieci: Number(e.target.value) })}
-              >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    {n === 5 ? "5 lub więcej" : n}
-                  </option>
-                ))}
-              </select>
+              <Licznik wart={f.dzieci} min={1} max={5} onChange={(v) => ustaw({ dzieci: v })} format={(n) => (n === 5 ? "5+" : n)} />
             </Pole>
             {!adop && (
-              <>
-                <Pole etykieta="Data porodu (opcjonalnie, do wyliczenia terminów)">
-                  <input
-                    type="date"
-                    value={f.dataPorodu}
-                    onChange={(e) => ustaw({ dataPorodu: e.target.value })}
-                  />
-                </Pole>
-                <Check
-                  wart={f.zaZyciem}
-                  onChange={(v) => ustaw({ zaZyciem: v })}
-                >
-                  Mam zaświadczenie „Za życiem” (dłuższy urlop rodzicielski)
-                </Check>
-              </>
+              <Pole etykieta="Data porodu (do terminów)">
+                <input type="date" value={f.dataPorodu} onChange={(e) => ustaw({ dataPorodu: e.target.value })} />
+              </Pole>
             )}
             {adop && (
-              <>
-                <Radio
-                  name="typ"
-                  wart={f.typAdopcji}
-                  onChange={(v) => ustaw({ typAdopcji: v })}
-                  opcje={[
-                    ["zastepcza", "Rodzina zastępcza niezawodowa"],
-                    ["przysposobienie", "Wniosek o przysposobienie"],
-                  ]}
-                />
-                <Pole etykieta="Wiek dziecka (lata)">
-                  <input
-                    type="number"
-                    min="0"
-                    max="18"
-                    value={f.wiek}
-                    onChange={(e) => ustaw({ wiek: e.target.value })}
-                  />
-                </Pole>
-                {f.typAdopcji === "zastepcza" && (
-                  <Check
-                    wart={f.odroczenie}
-                    onChange={(v) => ustaw({ odroczenie: v })}
-                  >
-                    Odroczony obowiązek szkolny
-                  </Check>
-                )}
-              </>
-            )}
-          </fieldset>
-
-          <fieldset className="karta kalk-sekcja">
-            <legend className="karta-h">Kto korzysta</legend>
-            <Radio
-              name="tryb"
-              wart={f.tryb}
-              onChange={(v) => ustaw({ tryb: v })}
-              opcje={[
-                ["matka", `Tylko ${nazwaM.toLowerCase()}`],
-                ["oboje", "Oboje rodzice"],
-              ]}
-            />
-            {oboje && !adop && (
-              <Check wart={f.ojcowski} onChange={(v) => ustaw({ ojcowski: v })}>
-                Ojciec bierze 14 dni urlopu ojcowskiego
-              </Check>
-            )}
-            {!adop && (
-              <div className="kalk-rzad">
-                <Pole etykieta="Uzupełniający urlop macierzyński (tygodnie)">
-                  <input
-                    type="number"
-                    min="0"
-                    max="15"
-                    value={f.uzupTyg}
-                    onChange={(e) => ustaw({ uzupTyg: e.target.value })}
-                  />
-                </Pole>
-                {oboje && Number(f.uzupTyg) > 0 && (
-                  <Pole etykieta="Kto go weźmie">
-                    <select
-                      value={f.uzupKto}
-                      onChange={(e) => ustaw({ uzupKto: e.target.value })}
-                    >
-                      <option value="M">{nazwaM}</option>
-                      <option value="O">{nazwaO}</option>
-                    </select>
-                  </Pole>
-                )}
-              </div>
-            )}
-          </fieldset>
-
-          <fieldset className="karta kalk-sekcja">
-            <legend className="karta-h">Podstawa wymiaru zasiłku</legend>
-            <Radio
-              name="kwota"
-              wart={f.kwotaTyp}
-              onChange={(v) => ustaw({ kwotaTyp: v })}
-              opcje={[
-                ["brutto", "Znam średnie wynagrodzenie brutto"],
-                ["podstawa", "Znam podstawę wymiaru"],
-              ]}
-            />
-            <div className="kalk-rzad">
-              <Pole
-                etykieta={`${nazwaM}: ${f.kwotaTyp === "brutto" ? "brutto z 12 miesięcy (zł)" : "podstawa (zł)"}`}
-              >
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={f.kwotaTyp === "brutto" ? f.brutto : f.podstawaM}
-                  onChange={(e) =>
-                    ustaw(
-                      f.kwotaTyp === "brutto"
-                        ? { brutto: e.target.value }
-                        : { podstawaM: e.target.value },
-                    )
-                  }
-                />
+              <Pole etykieta="Wiek dziecka (lata)">
+                <Licznik wart={Number(f.wiek) || 0} min={0} max={18} onChange={(v) => ustaw({ wiek: v })} />
               </Pole>
-              {oboje && (
-                <Pole
-                  etykieta={`${nazwaO}: ${f.kwotaTyp === "brutto" ? "brutto (zł)" : "podstawa (zł)"}`}
-                >
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
+            )}
+          </div>
+          {!adop && <Check wart={f.zaZyciem} onChange={(v) => ustaw({ zaZyciem: v })}>Mam zaświadczenie „Za życiem” (dłuższy urlop rodzicielski)</Check>}
+          {adop && (
+            <>
+              <Radio name="typ" wart={f.typAdopcji} onChange={(v) => ustaw({ typAdopcji: v })}
+                opcje={[["zastepcza", "Rodzina zastępcza niezawodowa"], ["przysposobienie", "Wniosek o przysposobienie"]]} />
+              {f.typAdopcji === "zastepcza" && <Check wart={f.odroczenie} onChange={(v) => ustaw({ odroczenie: v })}>Odroczony obowiązek szkolny</Check>}
+            </>
+          )}
+        </Krok>
+
+        <Krok nr={2} tytul="Kto bierze urlop" opis="Jeden rodzic czy oboje — urlop można podzielić.">
+          <Radio name="tryb" wart={f.tryb} onChange={(v) => ustaw({ tryb: v })}
+            opcje={[["matka", `Tylko ${nazwaM.toLowerCase()}`], ["oboje", "Oboje rodzice"]]} />
+          {oboje && !adop && <Check wart={f.ojcowski} onChange={(v) => ustaw({ ojcowski: v })}>{nazwaO} bierze też 2 tygodnie urlopu ojcowskiego</Check>}
+          {!oboje && !adop && (
+            <div className="kk-wariant">
+              <span className="kk-wariant-pyt">Jak chcesz dostawać zasiłek?</span>
+              <Radio name="wariant" wart={f.w815 ? "815" : "100"} onChange={(v) => ustaw({ w815: v === "815" })}
+                opcje={[["100", "100% za macierzyński, potem 70%"], ["815", "81,5% przez cały rok"]]} />
+              <span className="kk-pomoc">81,5% wybierasz tylko we wniosku złożonym w ciągu 21 dni po porodzie. Później zostaje wariant 100% + 70%.</span>
+            </div>
+          )}
+        </Krok>
+
+        <Krok nr={3} tytul="Ile zarabiasz" opis={zusPodstawa > 0 ? "Wpisaliśmy podstawę z danych ZUS — możesz ją zmienić." : "Średnie wynagrodzenie brutto z 12 miesięcy albo podstawa wymiaru."}>
+          <Radio name="kwota" wart={f.kwotaTyp} onChange={(v) => ustaw({ kwotaTyp: v })}
+            opcje={[["podstawa", "Podstawa wymiaru"], ["brutto", "Wynagrodzenie brutto"]]} />
+          <div className="kk-siatka">
+            <Pole etykieta={`${nazwaM} — ${f.kwotaTyp === "brutto" ? "brutto miesięcznie" : "podstawa"}`}>
+              <span className="kk-zl">
+                <input type="number" min="0" step="0.01" inputMode="decimal"
+                  value={f.kwotaTyp === "brutto" ? f.brutto : f.podstawaM}
+                  onChange={(e) => ustaw(f.kwotaTyp === "brutto" ? { brutto: e.target.value } : { podstawaM: e.target.value })} />
+                <span aria-hidden="true">zł</span>
+              </span>
+            </Pole>
+            {oboje && (
+              <Pole etykieta={`${nazwaO} — ${f.kwotaTyp === "brutto" ? "brutto miesięcznie" : "podstawa"}`}>
+                <span className="kk-zl">
+                  <input type="number" min="0" step="0.01" inputMode="decimal"
                     value={f.kwotaTyp === "brutto" ? f.bruttoO : f.podstawaO}
-                    onChange={(e) =>
-                      ustaw(
-                        f.kwotaTyp === "brutto"
-                          ? { bruttoO: e.target.value }
-                          : { podstawaO: e.target.value },
-                      )
-                    }
-                  />
+                    onChange={(e) => ustaw(f.kwotaTyp === "brutto" ? { bruttoO: e.target.value } : { podstawaO: e.target.value })} />
+                  <span aria-hidden="true">zł</span>
+                </span>
+              </Pole>
+            )}
+          </div>
+          {f.kwotaTyp === "brutto" && <p className="kk-pomoc">Podstawa = średnia z 12 miesięcy minus składki pracownika (13,71%).</p>}
+          {zusPodstawa > 0 && Number(f.podstawaM) !== zusPodstawa && (
+            <button type="button" className="kk-link" onClick={() => ustaw({ kwotaTyp: "podstawa", podstawaM: zusPodstawa })}>Wróć do podstawy z ZUS ({zl(zusPodstawa)})</button>
+          )}
+        </Krok>
+
+        {oboje && (
+          <Krok nr={4} tytul="Podział urlopu" opis="Przesuwaj albo klikaj − / +. Każdy rodzic ma swoją nieprzenoszalną część.">
+            <Podzial etykieta="Urlop macierzyński" nazwaM={nazwaM} nazwaO={nazwaO} min={macMin} max={maxMac} wart={macM} onChange={(v) => ustaw({ macMatka: v })} razem={maxMac} />
+            {pula > 0 && (
+              <Podzial etykieta="Urlop rodzicielski" nazwaM={nazwaM} nazwaO={nazwaO} min={NIEPRZENOSZALNE_ROD_TYG} max={pula - NIEPRZENOSZALNE_ROD_TYG} wart={rodM} onChange={(v) => ustaw({ rodMatka: v })} razem={pula}
+                uwaga={`Każde z rodziców ma co najmniej ${NIEPRZENOSZALNE_ROD_TYG} tygodni tylko dla siebie.`} />
+            )}
+          </Krok>
+        )}
+
+        <Krok nr={oboje ? 5 : 4} tytul="Praca i dodatkowy urlop" opcjonalny opis="Pomiń, jeśli nie planujesz pracy w czasie urlopu.">
+          <Suwak etykieta={`${nazwaM}: praca w czasie urlopu rodzicielskiego`} min={0} max={50} krok={5} wart={f.pracaM} onChange={(v) => ustaw({ pracaM: v })} opis="% etatu — do połowy etatu urlop się wydłuża, zasiłek jest proporcjonalny" jednostka="%" />
+          {oboje && <Suwak etykieta={`${nazwaO}: praca w czasie urlopu rodzicielskiego`} min={0} max={50} krok={5} wart={f.pracaO} onChange={(v) => ustaw({ pracaO: v })} opis="% etatu" jednostka="%" />}
+          {!adop && (
+            <div className="kk-siatka">
+              <Pole etykieta="Uzupełniający urlop macierzyński (wcześniak / szpital), tygodnie">
+                <Licznik wart={Number(f.uzupTyg) || 0} min={0} max={15} onChange={(v) => ustaw({ uzupTyg: v })} />
+              </Pole>
+              {oboje && Number(f.uzupTyg) > 0 && (
+                <Pole etykieta="Kto go weźmie">
+                  <select value={f.uzupKto} onChange={(e) => ustaw({ uzupKto: e.target.value })}>
+                    <option value="M">{nazwaM}</option>
+                    <option value="O">{nazwaO}</option>
+                  </select>
                 </Pole>
               )}
             </div>
-            {f.kwotaTyp === "brutto" && (
-              <p className="muted small">
-                Podstawa = średnia z 12 miesięcy pomniejszona o składki
-                pracownika (13,71%).
-              </p>
-            )}
-            {zusPodstawa > 0 && (
-              <button
-                type="button"
-                className="link"
-                onClick={() =>
-                  ustaw({ kwotaTyp: "podstawa", podstawaM: zusPodstawa })
-                }
-              >
-                Użyj podstawy z ZUS ({zl(zusPodstawa)})
-              </button>
-            )}
-          </fieldset>
-
-          {oboje && (
-            <fieldset className="karta kalk-sekcja">
-              <legend className="karta-h">Podział urlopów</legend>
-              <Suwak
-                etykieta={`Urlop macierzyński ${nazwaM.toLowerCase()}`}
-                min={macMin}
-                max={maxMac}
-                wart={Math.min(Math.max(f.macMatka, macMin), maxMac)}
-                onChange={(v) => ustaw({ macMatka: v })}
-                opis={`${nazwaM}: ${Math.min(Math.max(f.macMatka, macMin), maxMac)} tyg. · ${nazwaO}: ${maxMac - Math.min(Math.max(f.macMatka, macMin), maxMac)} tyg.`}
-              />
-              {pula > 0 && (
-                <Suwak
-                  etykieta="Urlop rodzicielski"
-                  min={NIEPRZENOSZALNE_ROD_TYG}
-                  max={pula - NIEPRZENOSZALNE_ROD_TYG}
-                  wart={Math.min(
-                    Math.max(f.rodMatka, NIEPRZENOSZALNE_ROD_TYG),
-                    pula - NIEPRZENOSZALNE_ROD_TYG,
-                  )}
-                  onChange={(v) => ustaw({ rodMatka: v })}
-                  opis={`${nazwaM}: ${Math.min(Math.max(f.rodMatka, NIEPRZENOSZALNE_ROD_TYG), pula - NIEPRZENOSZALNE_ROD_TYG)} tyg. · ${nazwaO}: ${pula - Math.min(Math.max(f.rodMatka, NIEPRZENOSZALNE_ROD_TYG), pula - NIEPRZENOSZALNE_ROD_TYG)} tyg. (każde z rodziców ma min. ${NIEPRZENOSZALNE_ROD_TYG})`}
-                />
-              )}
-            </fieldset>
           )}
+        </Krok>
+      </form>
 
-          <fieldset className="karta kalk-sekcja">
-            <legend className="karta-h">
-              Praca w czasie urlopu rodzicielskiego
-            </legend>
-            <p className="muted small">
-              Można pracować do połowy etatu – urlop wydłuża się, a zasiłek jest
-              wypłacany proporcjonalnie.
-            </p>
-            <Suwak
-              etykieta={`${nazwaM}: wymiar pracy`}
-              min={0}
-              max={50}
-              krok={5}
-              wart={f.pracaM}
-              onChange={(v) => ustaw({ pracaM: v })}
-              opis={`${f.pracaM}% etatu`}
-            />
-            {oboje && (
-              <Suwak
-                etykieta={`${nazwaO}: wymiar pracy`}
-                min={0}
-                max={50}
-                krok={5}
-                wart={f.pracaO}
-                onChange={(v) => ustaw({ pracaO: v })}
-                opis={`${f.pracaO}% etatu`}
-              />
-            )}
-            {!oboje && !adop && (
-              <Check wart={f.w815} onChange={(v) => ustaw({ w815: v })}>
-                Złożę wniosek o zasiłek 81,5% (w ciągu 21 dni po porodzie, cały
-                urlop bez pracy)
-              </Check>
-            )}
-          </fieldset>
-        </form>
-
-        <section className="kalk-wynik" aria-live="polite" aria-label="Wynik">
-          <div className="karta kalk-sticky">
-            {wynik.blad ? (
-              <p className="status czerwony">{wynik.blad}</p>
-            ) : wynik.brakPodstawy ? (
-              <p className="muted">
-                Wpisz wynagrodzenie lub podstawę wymiaru, aby zobaczyć wynik.
-              </p>
-            ) : (
-              <>
-                <p className="karta-h">Łącznie zasiłek</p>
-                <p className="kalk-duza">{zl(wynik.razem)}</p>
-                {wynik.podzial.length > 1 && (
-                  <p className="muted small">
-                    {wynik.podzial
-                      .map((p) => `${p.kto}: ${zl(p.razem)}`)
-                      .join(" · ")}
-                  </p>
-                )}
-                {wynik.uzywa815 && (
-                  <p className="status zielony">Zastosowano stawkę 81,5%</p>
-                )}
-
-                <div className="kalk-tabela-wrap">
-                  <table className="kalk-tabela">
-                    <thead>
-                      <tr>
-                        <th>Urlop</th>
-                        <th>Czas</th>
-                        <th>Stawka</th>
-                        <th>Miesięcznie</th>
-                        <th>Razem</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {wynik.linie.map((l, i) => (
-                        <tr key={i}>
-                          <td>
-                            <b>{l.nazwa}</b>
-                            <br />
-                            <span className="muted small">{l.kto}</span>
-                          </td>
-                          <td>
-                            {l.dni <= 14
-                              ? `${l.dni} dni`
-                              : `${l.tygodnie.toLocaleString("pl-PL")} tyg.`}
-                          </td>
-                          <td>
-                            {proc(l.procent)}
-                            {l.praca ? (
-                              <>
-                                <br />
-                                <span className="muted small">
-                                  × {proc(1 - l.praca)} etatu
-                                </span>
-                              </>
-                            ) : null}
-                          </td>
-                          <td>
-                            {zl(l.miesiecznie)}
-                            {l.zPracy ? (
-                              <>
-                                <br />
-                                <span className="muted small">
-                                  + ok. {zl(l.zPracy)} z pracy
-                                </span>
-                              </>
-                            ) : null}
-                          </td>
-                          <td>
-                            <b>{zl(l.razem)}</b>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+      {/* ===================== WYNIK (na dole) ===================== */}
+      <section className="kk-wynik" ref={wynikRef} aria-labelledby="kk-wynik-tytul">
+        <h2 id="kk-wynik-tytul" className="kk-wynik-tytul"><span className="kk-nr kk-nr-wynik" aria-hidden="true">=</span> Twój wynik</h2>
+        <div className="kk-wynik-karta" aria-live="polite">
+          {wynik.blad ? (
+            <p className="status czerwony">{wynik.blad}</p>
+          ) : wynik.brakPodstawy ? (
+            <p className="kk-pusty">Wpisz wynagrodzenie albo podstawę w kroku 3, a zobaczysz wynik.</p>
+          ) : (
+            <>
+              <div className="kk-suma">
+                <div>
+                  <small>Łącznie dostaniesz około</small>
+                  <p className="kk-duza">{zl(wynik.razem)}</p>
+                  {wynik.uzywa815 && <span className="kk-znak">✓ stawka 81,5% przez cały okres</span>}
                 </div>
-
-                {wynik.ostrzezenia.map((o) => (
-                  <p key={o} className="status zolty">
-                    ⚠ {o}
-                  </p>
-                ))}
-                {wynik.terminy.length > 0 && (
-                  <ul className="terminy">
-                    {wynik.terminy.map((t) => (
-                      <li key={t}>{t}</li>
-                    ))}
+                {wynik.podzial.length > 1 && (
+                  <ul className="kk-osoby">
+                    {wynik.podzial.map((p) => <li key={p.kto}><small>{p.kto}</small><b>{zl(p.razem)}</b></li>)}
                   </ul>
                 )}
-                <p className="muted small">
-                  To symulacja orientacyjna. Zasiłek za pełny miesiąc liczony
-                  jest z 30 dni; ostateczną kwotę ustala ZUS lub płatnik
-                  składek.
-                </p>
-              </>
-            )}
-          </div>
-        </section>
+              </div>
+
+              <div className="kalk-tabela-wrap">
+                <table className="kalk-tabela kk-tabela">
+                  <caption className="sr-only">Zasiłek w podziale na urlopy</caption>
+                  <thead><tr><th scope="col">Urlop</th><th scope="col">Jak długo</th><th scope="col">Stawka</th><th scope="col">Miesięcznie</th><th scope="col">Razem</th></tr></thead>
+                  <tbody>
+                    {wynik.linie.map((l, i) => (
+                      <tr key={i}>
+                        <td><b>{l.nazwa}</b><br /><span className="muted small">{l.kto}</span></td>
+                        <td>{l.dni <= 14 ? `${l.dni} dni` : `${l.tygodnie.toLocaleString("pl-PL")} tyg.`}</td>
+                        <td>{proc(l.procent)}{l.praca ? <><br /><span className="muted small">× {proc(1 - l.praca)} etatu</span></> : null}</td>
+                        <td>{zl(l.miesiecznie)}{l.zPracy ? <><br /><span className="muted small">+ ok. {zl(l.zPracy)} z pracy</span></> : null}</td>
+                        <td><b>{zl(l.razem)}</b></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {wynik.ostrzezenia.map((o) => <p key={o} className="status zolty">⚠ {o}</p>)}
+              {wynik.terminy.length > 0 && (
+                <div className="kk-terminy"><b>Terminy</b><ul className="terminy">{wynik.terminy.map((t) => <li key={t}>{t}</li>)}</ul></div>
+              )}
+              <p className="muted small">To symulacja orientacyjna. Zasiłek za pełny miesiąc liczony jest z 30 dni; ostateczną kwotę ustala ZUS lub płatnik składek.</p>
+            </>
+          )}
+        </div>
+      </section>
+
+      {!wynikWidac && !wynik.blad && !wynik.brakPodstawy && (
+        <button type="button" className="kk-pasek" onClick={doWyniku}>
+          <span>Łącznie ok. <b>{zl(wynik.razem)}</b></span>
+          <span className="kk-pasek-cta">Zobacz wynik ↓</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Jeden krok kalkulatora (numer, tytuł, opis i pola)
+function Krok({ nr, tytul, opis, children, opcjonalny }) {
+  return (
+    <fieldset className="kk-krok">
+      <legend className="kk-krok-glowa">
+        <span className="kk-nr" aria-hidden="true">{nr}</span>
+        <span><b>{tytul}</b>{opcjonalny && <em> (opcjonalnie)</em>}{opis && <small>{opis}</small>}</span>
+      </legend>
+      <div className="kk-krok-tresc">{children}</div>
+    </fieldset>
+  );
+}
+
+// Liczba z przyciskami − / +
+function Licznik({ wart, min, max, onChange, format = (n) => n }) {
+  const v = Math.min(Math.max(Number(wart) || 0, min), max);
+  return (
+    <span className="kk-licznik">
+      <button type="button" aria-label="Mniej" onClick={() => onChange(Math.max(min, v - 1))} disabled={v <= min}>−</button>
+      <output aria-live="polite">{format(v)}</output>
+      <button type="button" aria-label="Więcej" onClick={() => onChange(Math.min(max, v + 1))} disabled={v >= max}>+</button>
+    </span>
+  );
+}
+
+// Podział tygodni między rodziców — pasek pokazuje, ile ma każde z nich
+function Podzial({ etykieta, nazwaM, nazwaO, min, max, wart, onChange, razem, uwaga }) {
+  const v = Math.min(Math.max(wart, min), max);
+  const procM = (v / razem) * 100;
+  return (
+    <div className="kk-podzial">
+      <div className="kk-podzial-glowa"><b>{etykieta}</b><span className="muted small">razem {razem} tyg.</span></div>
+      <div className="kk-podzial-pasek" aria-hidden="true">
+        <span className="m" style={{ width: `${procM}%` }}>{procM >= 14 && `${nazwaM}: ${v} tyg.`}</span>
+        <span className="o" style={{ width: `${100 - procM}%` }}>{100 - procM >= 14 && `${nazwaO}: ${razem - v} tyg.`}</span>
       </div>
+      <div className="kalk-suwak-rzad">
+        <button type="button" aria-label={`Mniej tygodni dla: ${nazwaM}`} onClick={() => onChange(Math.max(min, v - 1))} disabled={v <= min}>−</button>
+        <input type="range" min={min} max={max} value={v} aria-label={`${etykieta}: tygodnie dla ${nazwaM}`} aria-valuetext={`${nazwaM} ${v} tygodni, ${nazwaO} ${razem - v} tygodni`} onChange={(e) => onChange(Number(e.target.value))} />
+        <button type="button" aria-label={`Więcej tygodni dla: ${nazwaM}`} onClick={() => onChange(Math.min(max, v + 1))} disabled={v >= max}>+</button>
+      </div>
+      {uwaga && <span className="muted small">{uwaga}</span>}
     </div>
   );
 }
@@ -566,7 +426,7 @@ function Radio({ name, wart, onChange, opcje }) {
 }
 
 // Suwak z przyciskami − / + (łatwiej trafić niż w sam suwak, zwłaszcza na telefonie)
-function Suwak({ etykieta, min, max, krok = 1, wart, onChange, opis }) {
+function Suwak({ etykieta, min, max, krok = 1, wart, onChange, opis, jednostka = "" }) {
   const v = Math.min(Math.max(Number(wart) || 0, min), max);
   return (
     <div className="kalk-pole kalk-suwak">
@@ -575,7 +435,7 @@ function Suwak({ etykieta, min, max, krok = 1, wart, onChange, opis }) {
         <button type="button" aria-label="Mniej" onClick={() => onChange(Math.max(min, v - krok))} disabled={v <= min}>−</button>
         <input type="range" min={min} max={max} step={krok} value={v} aria-label={etykieta} onChange={(e) => onChange(Number(e.target.value))} />
         <button type="button" aria-label="Więcej" onClick={() => onChange(Math.min(max, v + krok))} disabled={v >= max}>+</button>
-        <b className="kalk-suwak-wart">{v}</b>
+        <b className="kalk-suwak-wart">{v}{jednostka}</b>
       </div>
       <span className="muted small">{opis}</span>
     </div>

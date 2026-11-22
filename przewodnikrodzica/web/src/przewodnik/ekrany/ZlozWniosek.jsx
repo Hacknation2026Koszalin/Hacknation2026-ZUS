@@ -8,6 +8,7 @@ import { DANE_ZUS_ZAPAS, PROFIL_MOBYWATEL } from "../dane.js";
 import { DOKUMENTY_INNYCH, FORMULARZE, KATEGORIE, formularz, slug } from "../wniosek/formularze/index.js";
 import Kreator from "../wniosek/Kreator.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
+import { fmtZapisu, wersjaRobocza } from "../wniosek/robocze.js";
 
 const kluczSzkicu = (f) => `wniosek-${f.symbol.toLowerCase()}-szkic`;
 const maSzkic = (f) => {
@@ -22,7 +23,8 @@ const maSzkic = (f) => {
 function KartaWniosku({ f, powod, s }) {
   const a = f.adresat?.({ zus: s?.zus });
   const gdzie = a === "pracodawca" ? "u pracodawcy" : a === "usc" ? "w USC (gov.pl)" : "w ZUS";
-  const szkic = maSzkic(f);
+  const robocza = wersjaRobocza((s?.profil || PROFIL_MOBYWATEL).pesel, f.symbol);
+  const szkic = !robocza && maSzkic(f);
   return (
     <li>
       <Link to={`/przewodnik/wnioski/${slug(f)}`} className={`zw-karta ${powod ? "polecany" : ""}`}>
@@ -34,6 +36,7 @@ function KartaWniosku({ f, powod, s }) {
             <span><Ikona n="zegar" rozmiar={14} /> ok. {f.czas}</span>
             <span className={`zw-gdzie ${a === "pracodawca" ? "prac" : "zus"}`}>Składasz {gdzie}</span>
             {powod && <span className="zw-chip ok"><Ikona n="check" rozmiar={14} /> {powod}</span>}
+            {robocza && <span className="zw-chip szkic"><Ikona n="plik" rozmiar={14} /> Wersja robocza z {fmtZapisu(robocza.zapisano)} · {robocza.gotowe}/{robocza.wszystkie} pól</span>}
             {szkic && <span className="zw-chip szkic">Masz zapisany szkic</span>}
           </span>
         </span>
