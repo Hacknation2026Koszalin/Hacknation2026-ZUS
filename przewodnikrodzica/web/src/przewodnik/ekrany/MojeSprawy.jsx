@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
 import { PROFIL_MOBYWATEL } from "../dane.js";
-import { POLA } from "../wniosek/formularz.js";
+import { ZAM } from "../wniosek/formularz.js";
+import { formularz } from "../wniosek/formularze/index.js";
+
+const polaDla = (w) => (formularz(w.typ) || ZAM).pola;
 import { STATUSY, pobierzWnioski } from "../wniosek/wnioski.js";
 import Ikona from "../wniosek/Ikona.jsx";
 
@@ -39,7 +42,7 @@ export default function MojeSprawy() {
         {lista?.length === 0 && (
           <div className="wn-karta">
             <p style={{ marginTop: 0 }}>Nie masz jeszcze żadnych spraw.</p>
-            <Link to="/przewodnik/swiadczenia/zasilek-macierzynski" className="wn-btn wn-btn-glowny">Złóż wniosek o zasiłek macierzyński</Link>
+            <Link to="/przewodnik/wnioski" className="wn-btn wn-btn-glowny">Złóż wniosek</Link>
           </div>
         )}
 
@@ -62,10 +65,10 @@ export default function MojeSprawy() {
                     <b>Urzędnik prosi o uzupełnienie</b>
                     {w.komentarz && <p>„{w.komentarz}”</p>}
                     {w.doPoprawy?.length > 0 && (
-                      <p>Do poprawy: {w.doPoprawy.map((id) => POLA.find((p) => p.id === id)?.etykieta).filter(Boolean).join(", ")}</p>
+                      <p>Do poprawy: {w.doPoprawy.map((id) => polaDla(w).find((p) => p.id === id)?.etykieta).filter(Boolean).join(", ")}</p>
                     )}
                     <button type="button" className="wn-btn wn-btn-glowny" style={{ marginTop: 10 }}
-                      onClick={() => nav("/przewodnik/swiadczenia/zasilek-macierzynski/wniosek", { state: { poprawa: w.numer } })}>
+                      onClick={() => nav(`/przewodnik/wnioski/${(w.typ || "ZAM").toLowerCase()}`, { state: { poprawa: w.numer } })}>
                       Popraw wniosek
                     </button>
                   </div>

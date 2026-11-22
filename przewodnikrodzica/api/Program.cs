@@ -30,37 +30,8 @@ app.MapGet("/api/symulacja/zus/{pesel}", (string pesel) => new DaneZus(
     new Ubezpieczenie("umowa o pracę", "2021-03-01", "obowiązkowe", true,
         "Przykładowa Firma sp. z o.o.", true),
     6904.70m,
-    new[] { new EZla("2026-08-04", "2026-08-31", "B"), new EZla("2026-09-01", "2026-09-28", "B") },
+    new[] { new EZla("2026-08-04", "2026-08-31", "B"), new EZla("2026-09-01", "2026-09-28", "B"), new EZla("2026-11-09", "2026-12-06", "B") },
     0m));
-
-// Karta ciąży "pobrana od ginekologa" (symulacja). Zwracamy dowolny JSON w tym samym kształcie co KARTA_CIAZY we frontendzie.
-app.MapGet("/api/symulacja/karta-ciazy/{pesel}", (string pesel) => new
-{
-    zrodlo = new { placowka = "Przychodnia Przykładowa, Bydgoszcz", lekarz = "lek. Maria Przykładowa", pobrano = "2026-11-18" },
-    ostatniaMiesiaczka = "2026-04-13",
-    terminPorodu = "2027-01-18",
-    liczbaDzieci = 1,
-    plec = "dziewczynka",
-    grupaKrwi = "A Rh+",
-    ktoraCiaza = 1,
-    ktoryPorod = 1,
-    pomiary = new { data = "2026-11-18", tydzien = "31+2", masaCiala = "68,4 kg", cisnienie = "115/75 mmHg", masaPlodu = "ok. 1 750 g", tetnoPlodu = "142 / min" },
-    wizyty = new[]
-    {
-        new { data = "2026-06-08", tydzien = "8+0", opis = "Potwierdzenie ciąży, pierwsze USG" },
-        new { data = "2026-06-29", tydzien = "11+0", opis = "USG I trymestru — wynik prawidłowy" },
-        new { data = "2026-08-24", tydzien = "19+0", opis = "USG połówkowe — rozwój prawidłowy" },
-        new { data = "2026-10-05", tydzien = "25+0", opis = "Test obciążenia glukozą — w normie" },
-        new { data = "2026-11-18", tydzien = "31+2", opis = "USG III trymestru — dziecko rośnie prawidłowo" },
-    },
-    badania = new[]
-    {
-        new { nazwa = "Morfologia krwi", wynik = "w normie", stan = "ok" },
-        new { nazwa = "Test obciążenia glukozą (OGTT)", wynik = "w normie", stan = "ok" },
-        new { nazwa = "Wymaz GBS", wynik = "zaplanuj między 35. a 37. tygodniem", stan = "plan" },
-    },
-    nastepnaWizyta = "2026-12-02",
-});
 
 // ===== WNIOSKI (trzymane w pamięci — znikają po restarcie backendu) =====
 var wnioski = new System.Collections.Concurrent.ConcurrentDictionary<string, Wniosek>();
@@ -76,7 +47,7 @@ app.MapGet("/api/wnioski/{numer}", (string numer) =>
 app.MapPost("/api/wnioski", (Wniosek w) =>
 {
     var poprawa = !string.IsNullOrEmpty(w.Numer) && wnioski.ContainsKey(w.Numer!);
-    var numer = poprawa ? w.Numer! : $"ZAM-{DateTime.Now.Year}-{Random.Shared.Next(100000, 999999)}";
+    var numer = poprawa ? w.Numer! : $"{(string.IsNullOrWhiteSpace(w.Typ) ? "ZAM" : w.Typ)}-{DateTime.Now.Year}-{Random.Shared.Next(100000, 999999)}";
     var historia = poprawa ? new List<Zdarzenie>(wnioski[numer].Historia ?? new()) : new List<Zdarzenie>();
     historia.Add(new Zdarzenie(Teraz(), "u_urzednika", poprawa ? "Wniosek poprawiony i wysłany ponownie" : "Wniosek wysłany"));
     var zapis = w with

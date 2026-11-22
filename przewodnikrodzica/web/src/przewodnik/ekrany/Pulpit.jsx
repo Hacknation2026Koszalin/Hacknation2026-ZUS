@@ -1,46 +1,47 @@
 // =====================================================================
-// MOJE KONTO — hero z odliczaniem do kolejnego wniosku,
-// pod spodem oś czasu w zygzaku (prawo–lewo) z checklistą przy każdym kroku
+// MOJE KONTO — strona główna po zalogowaniu.
+// Hero (odliczanie do kolejnego wniosku) + „Co możesz zrobić” (krótkie karty)
+// + Twoja sytuacja (z ankiety). Oś czasu jest w „Mojej ścieżce”.
 // =====================================================================
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
-import { ETAPY, KARTA_CIAZY, PROFIL_MOBYWATEL } from "../dane.js";
-import { dzisISO, fmtDzien, ileDni, opisZa, tydzienCiazy } from "../terminy.js";
+import { DANE_ZUS_ZAPAS, ETAPY, PROFIL_MOBYWATEL } from "../dane.js";
+import { dzisISO, fmtDzien, ileDni } from "../terminy.js";
 import { zbudujPlan } from "../plan.js";
-import { pobierzWnioski } from "../wniosek/wnioski.js";
+import { maChorobowe, nazwaEtapu, ocenSytuacje } from "../sytuacja.js";
+import { STATUSY } from "../wniosek/wnioski.js";
+import { useChecklista } from "../komponenty/OsCzasu.jsx";
+import { DataModal, useDataKluczowa } from "../komponenty/DataKluczowa.jsx";
+import { ZadluzenieModal, kwota, maZadluzenie } from "../komponenty/Zadluzenie.jsx";
+import { OTWORZ_ZUSANNE } from "../komponenty/Zusanna.jsx";
+import { useNadchodzace } from "../komponenty/Powiadomienia.jsx";
+import StatusZwolnienia, { pokazZwolnienie } from "../komponenty/Zwolnienie.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
 
-const KLUCZ = "przewodnik-checklista";
-const wczytaj = () => {
-  try {
-    return JSON.parse(localStorage.getItem(KLUCZ)) || {};
-  } catch {
-    return {};
-  }
-};
-const zl = (v) => v.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " zł";
 
 // --- tło hero (gradient identyfikacji + płynące linie) ---
-function TloHero() {
+function TloHero({ alarm }) {
+  const [z1, z2, z3, z4] = alarm ? ["#FFB4A8", "#F0645A", "#D93A35", "#B3261E"] : ["#EAF205", "#8FD201", "#1FB0A6", "#0B86D6"];
+  const [n1, n2, n3] = alarm ? ["#C62828", "#9E1C1C", "#6E1212"] : ["#0B86D6", "#025AC4", "#023F8F"];
   return (
     <svg className="mkhero-tlo" viewBox="0 0 1440 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
         <linearGradient id="gZus" x1="0" y1="0" x2="0.35" y2="1">
-          <stop offset="0" stopColor="#EAF205" />
-          <stop offset="0.38" stopColor="#8FD201" />
-          <stop offset="0.7" stopColor="#1FB0A6" />
-          <stop offset="1" stopColor="#0B86D6" />
+          <stop offset="0" stopColor={z1} />
+          <stop offset="0.38" stopColor={z2} />
+          <stop offset="0.7" stopColor={z3} />
+          <stop offset="1" stopColor={z4} />
         </linearGradient>
         <linearGradient id="gNiebo" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#0B86D6" />
-          <stop offset="0.45" stopColor="#025AC4" />
-          <stop offset="1" stopColor="#023F8F" />
+          <stop offset="0" stopColor={n1} />
+          <stop offset="0.45" stopColor={n2} />
+          <stop offset="1" stopColor={n3} />
         </linearGradient>
       </defs>
       <rect width="1440" height="560" fill="url(#gNiebo)" />
       <path d="M0 0H520C470 110 490 230 580 320C680 420 740 470 710 560H0Z" fill="url(#gZus)" />
-      <path d="M0 330C140 380 290 360 400 300C470 262 510 290 540 360L590 560H0Z" fill="#EAF205" opacity=".35" />
+      <path d="M0 330C140 380 290 360 400 300C470 262 510 290 540 360L590 560H0Z" fill={z1} opacity=".35" />
       <g fill="none" stroke="#fff" strokeWidth="1" opacity=".22">
         {Array.from({ length: 16 }, (_, i) => (
           <path key={i} d={`M${880 + i * 9} -20C${760 + i * 14} 150 ${1180 - i * 6} 260 ${1010 + i * 10} 400S${880 + i * 12} 520 ${1020 + i * 8} 600`} />
@@ -87,100 +88,177 @@ function Tarcza({ zostalo, okno }) {
   );
 }
 
-const ZNACZNIK = {
-  krytyczny: ["Nie przegap!", "dzwonek"],
-  szansa: ["Możesz już", "check"],
-  info: ["Warto wiedzieć", "info"],
-  porod: ["Wielki dzień", "serce"],
+
+// Zdjęcia kart „Co możesz zrobić”: [plik z folderu public, kadr].
+// Podmień na własne zdjęcia (np. /karty/data.jpg) — wystarczy wrzucić plik do web/public/karty.
+const ZDJECIA = {
+  data: ["/powitanie.jpg", "62% 40%"],
+  sciezka: ["/hero.jpg", "35% 30%"],
+  sprawa: ["/powitanie.jpg", "80% 30%"],
+  kalk: ["/hero.jpg", "70% 25%"],
+  wniosek: ["/powitanie.jpg", "45% 55%"],
+  rodz: ["/hero.jpg", "50% 40%"],
+  wsparcie: ["/powitanie.jpg", "30% 40%"],
+  asystent: ["/hero.jpg", "55% 20%"],
+  zadluzenie: ["/powitanie.jpg", "55% 35%"],
+  domyslne: ["/hero.jpg", "50% 40%"],
 };
 
 export default function Pulpit() {
-  const { profil = PROFIL_MOBYWATEL, etap, zus, ustaw } = useSesja();
+  const sesja = useSesja();
+  const { profil = PROFIL_MOBYWATEL, etap = "ciaza", zus = DANE_ZUS_ZAPAS, ankieta = {}, ustaw } = sesja;
+  const nav = useNavigate();
   const e = ETAPY.find((x) => x.id === etap) || ETAPY[1];
-  const karta = KARTA_CIAZY;
+  const strata = etap === "trudna";
+  const wCiazy = etap === "ciaza";
+  const { def, data } = useDataKluczowa();
+  const [modal, setModal] = useState(false);
   const dzis = dzisISO();
-  const trudna = etap === "trudna";
-  const wCiazy = etap === "ciaza" || !etap;
-  const doPorodu = ileDni(dzis, karta.terminPorodu);
-  const tc = tydzienCiazy(karta, dzis);
-  const plan = zbudujPlan(karta, dzis);
-
-  const [zrobione, setZrobione] = useState(wczytaj);
-  const [wyslaneWnioski, setWyslaneWnioski] = useState([]);
+  const zadluzony = maZadluzenie(zus) && !strata;
+  const [modalZad, setModalZad] = useState(false);
   useEffect(() => {
-    pobierzWnioski().then((l) => setWyslaneWnioski(l.filter((w) => w.osoba?.pesel === profil.pesel)));
-  }, [profil.pesel]);
+    if (zadluzony && sessionStorage.getItem("zadluzenie-pokazane") !== "1") setModalZad(true);
+  }, [zadluzony]);
+  const zamknijZad = () => { setModalZad(false); sessionStorage.setItem("zadluzenie-pokazane", "1"); };
+  const rzad = useRef(null);
+  const [przewin, setPrzewin] = useState({ lewo: false, prawo: false });
 
-  const czyZrobione = (z) =>
-    !!zrobione[z.id] || ((z.id === "zam" || z.powiazane === "zam") && wyslaneWnioski.length > 0);
-  const przelacz = (id) =>
-    setZrobione((s) => {
-      const n = { ...s, [id]: !s[id] };
-      try {
-        localStorage.setItem(KLUCZ, JSON.stringify(n));
-      } catch {
-        /* bez zapisu */
-      }
-      return n;
-    });
+  const chor = maChorobowe(ankieta, zus);
+  const sytuacja = ocenSytuacje(ankieta, zus, etap);
+  const plan = zbudujPlan({ etap, data, odp: ankieta, chor });
+  const lista = useChecklista(profil.pesel);
+  const doZrobienia = plan.flatMap((k) => k.zadania).filter((z) => !lista.czyZrobione(z)).length;
 
-  const wszystkie = plan.flatMap((k) => k.zadania);
-  const gotowe = wszystkie.filter(czyZrobione).length;
+  // Kolejny wniosek = najbliższy wniosek, który nie jest jeszcze złożony
+  // Kolejny krok = najbliższy nieodhaczony termin z Twojej ścieżki (ten sam, co w dzwonku)
+  const nadchodzace = useNadchodzace();
+  const kolejny = data ? nadchodzace[0] : plan.flatMap((k) => k.zadania).find((z) => !lista.czyZrobione(z));
+  const zostalo = kolejny?.termin ? ileDni(dzis, kolejny.termin) : null;
+  const nazwaKroku = kolejny ? (kolejny.wniosek && kolejny.nazwaWniosku ? kolejny.nazwaWniosku[0].toUpperCase() + kolejny.nazwaWniosku.slice(1) : kolejny.t) : "";
+  const doPorodu = wCiazy && data ? ileDni(dzis, data) : null;
+  const ostatniWniosek = lista.wnioski[0];
 
-  // Kolejny wniosek do złożenia = najbliższy termin wniosku, który nie jest jeszcze zrobiony
-  const kolejny = wszystkie
-    .filter((z) => z.wniosek && !czyZrobione(z))
-    .sort((a, b) => (a.termin < b.termin ? -1 : 1))[0];
-  const zostalo = kolejny ? ileDni(dzis, kolejny.termin) : null;
+  // ---------- „Co możesz zrobić” — krótkie karty ----------
+  const karty = [];
+  if (def && !data)
+    karty.push({ id: "data", kolor: "limonka", ikona: "kalendarz", tytul: `${def.dodaj} od lekarza`, opis: "Policzymy dokładne daty Twoich wniosków. To dobrowolne.", akcja: () => setModal(true), cta: "Dodaj datę" });
+  karty.push({ id: "sciezka", kolor: "niebo", ikona: "dokument", tytul: "Zobacz, co i kiedy musisz zrobić", opis: doZrobienia ? `${doZrobienia} rzeczy na Twojej liście` : "Wszystko odhaczone!", link: "/przewodnik/sciezka", cta: "Moja ścieżka" });
+  if (ostatniWniosek)
+    karty.push({ id: "sprawa", kolor: "bialy", ikona: "poczta", tytul: "Status Twojej sprawy", opis: `${ostatniWniosek.nazwa}: ${(STATUSY[ostatniWniosek.status] || STATUSY.u_urzednika).tekst.toLowerCase()}`, link: "/przewodnik/sprawy", cta: "Moje sprawy" });
+  if (sytuacja.swiadczenie === "zasilek" && !strata)
+    karty.push({ id: "kalk", kolor: "turkus", ikona: "kalkulator", tytul: "Sprawdź, ile dostaniesz", opis: "81,5% przez cały rok czy 100% + 70%? Porównaj.", link: "/przewodnik/kalkulator", cta: "Kalkulator" });
+  if (sytuacja.swiadczenie === "zasilek" && !ostatniWniosek && etap !== "planuje")
+    karty.push({ id: "wniosek", kolor: "granat", ikona: "dokument", tytul: "Złóż wniosek z przewodnikiem", opis: "Poprowadzimy Cię pole po polu.", link: "/przewodnik/swiadczenia/zasilek-macierzynski/wniosek", cta: "Złóż wniosek" });
+  if (sytuacja.swiadczenie === "rodzicielskie")
+    karty.push({ id: "rodz", kolor: "turkus", ikona: "info", tytul: "Świadczenie rodzicielskie", opis: "Sprawdź, gdzie i kiedy złożyć wniosek.", link: "/przewodnik/swiadczenia#swiadczenie-rodzicielskie", cta: "Świadczenia" });
+  if (strata)
+    karty.push({ id: "wsparcie", kolor: "bialy", ikona: "serce", tytul: "Pomoc dla Ciebie", opis: "Kontakty do wsparcia psychologicznego.", link: "/przewodnik/pomoc#wsparcie-psychologiczne", cta: "Pomoc" });
+  karty.push({ id: "asystent", kolor: "gradient", ikona: "dymek", tytul: "Asystent ZUSanna podpowie Ci", opis: "Zapytaj własnymi słowami o urlopy, zasiłki i wnioski.", akcja: () => window.dispatchEvent(new Event(OTWORZ_ZUSANNE)), cta: "Zapytaj ZUSannę" });
+  if (zadluzony)
+    karty.unshift({ id: "zadluzenie", kolor: "bialy sh-zadluzenie", ikona: "alert", tytul: "Spłać zaległość, by dostać zasiłek", opis: `Zaległość w składkach: ${kwota(zus.zadluzenie)}.`, akcja: () => setModalZad(true), cta: "Co to oznacza?" });
 
-  let ostatniaFaza = null;
+  // Karuzela: 3 karty na widoku, strzałki przewijają o jedną kartę
+  const aktualizujStrzalki = () => {
+    const el = rzad.current;
+    if (!el) return;
+    setPrzewin({ lewo: el.scrollLeft > 4, prawo: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { aktualizujStrzalki(); window.addEventListener("resize", aktualizujStrzalki); return () => window.removeEventListener("resize", aktualizujStrzalki); }, [karty.length]);
+  const przesun = (kier) => {
+    const el = rzad.current;
+    const karta = el?.querySelector(".sh-karta");
+    if (el && karta) el.scrollBy({ left: kier * (karta.offsetWidth + 16), behavior: "smooth" });
+  };
 
   return (
     <div className="mk">
       {/* ===================== HERO ===================== */}
-      <section className={`mkhero ${trudna ? "spokojny" : ""}`}>
-        <TloHero />
+      <section className={`mkhero ${strata ? "spokojny" : ""}`}>
+        <TloHero alarm={zadluzony} />
         <div className="wrap mkhero-in">
           <div className="licznik">
-            {kolejny ? (
+            {zadluzony ? (
+              <>
+                <div className="licznik-kolo licznik-zad">
+                  <div className="licznik-srodek">
+                    <Ikona n="alert" rozmiar={64} />
+                    <span className="licznik-pod licznik-pod-szer"><b>Zasiłek wstrzymany</b> do czasu spłaty zaległości</span>
+                  </div>
+                </div>
+                <button type="button" className="licznik-wstega licznik-wstega-btn" onClick={() => setModalZad(true)}>
+                  <span className="licznik-wstega-ikona"><Ikona n="alert" rozmiar={22} /></span>
+                  <span>
+                    <small>Zaległość w składkach</small>
+                    <b>{kwota(zus.zadluzenie)}</b>
+                    <em>Co to oznacza? Sprawdź</em>
+                  </span>
+                </button>
+              </>
+            ) : kolejny && zostalo !== null ? (
               <>
                 <div className="licznik-kolo">
-                  <Tarcza zostalo={zostalo} okno={120} />
+                  <Tarcza zostalo={zostalo} okno={zostalo <= 30 ? 30 : 120} />
                   <div className="licznik-srodek">
                     <span className="licznik-liczba">{zostalo}</span>
                     <span className="licznik-dni">dni</span>
-                    <span className="licznik-pod">na złożenie wniosku</span>
+                    <span className="licznik-pod">{kolejny.wniosek ? "na złożenie wniosku" : "do kolejnego kroku"}</span>
                   </div>
                 </div>
-                <Link to={kolejny.link || "/przewodnik/sprawy"} className="licznik-wstega">
+                <Link to={kolejny.link || "/przewodnik/sciezka"} className="licznik-wstega" key={kolejny.id}>
                   <span className="licznik-wstega-ikona"><Ikona n="dokument" rozmiar={22} /></span>
                   <span>
-                    <small>Kolejny wniosek</small>
-                    <b>{kolejny.nazwaWniosku[0].toUpperCase() + kolejny.nazwaWniosku.slice(1)}</b>
+                    <small>{kolejny.wniosek ? "Kolejny wniosek" : "Kolejny krok"}</small>
+                    <b>{nazwaKroku}</b>
                     <em>ostatni dzień: {fmtDzien(kolejny.termin)}</em>
                   </span>
                 </Link>
+                <div className="licznik-akcje">
+                  {def && data && (
+                    <button type="button" className="licznik-zmien" onClick={() => setModal(true)}>
+                      <Ikona n="kalendarz" rozmiar={16} /> {def.etykieta}: <b>{fmtDzien(data)}</b> <span>· zmień</span>
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
-              <div className="licznik-kolo">
-                <div className="licznik-srodek"><Ikona n="check" rozmiar={80} /><span className="licznik-pod">Wszystkie wnioski złożone</span></div>
-              </div>
+              <>
+                <div className="licznik-kolo">
+                  <div className="licznik-srodek">
+                    <Ikona n={strata ? "serce" : etap === "planuje" ? "check" : "kalendarz"} rozmiar={84} />
+                    <span className="licznik-pod licznik-pod-szer">
+                      {strata ? "Jesteśmy tu, kiedy będziesz gotowa" : kolejny ? "Pokażemy, ile dni zostało do kolejnego kroku" : "Terminy ustawowe znajdziesz w Twojej ścieżce"}
+                    </span>
+                  </div>
+                </div>
+                {def && !data && !strata && (
+                  <button type="button" className="licznik-wstega licznik-wstega-btn" onClick={() => setModal(true)}>
+                    <span className="licznik-wstega-ikona niebieska"><Ikona n="kalendarz" rozmiar={22} /></span>
+                    <span>
+                      <small className="niebieski">Opcjonalnie</small>
+                      <b>{def.dodaj}</b>
+                      <em>i zobacz konkretne daty</em>
+                    </span>
+                  </button>
+                )}
+              </>
             )}
           </div>
 
           <div className="mkhero-tekst">
-            <button type="button" className="mkhero-etap" onClick={() => ustaw({ onboardingZakonczony: false, etap: null })}>
-              {e.nazwa} <span>· zmień</span>
+            <button type="button" className="mkhero-etap" onClick={() => { ustaw({ onboardingZakonczony: false }); nav("/przewodnik/witaj"); }}>
+              {nazwaEtapu(etap, ankieta) || e.nazwa} <span>· zmień</span>
             </button>
             <h1>
-              {trudna ? `${e.powitanie}, ${profil.imie}` : wCiazy ? <>Gratulacje,<br />{profil.imie}!</> : <>{e.powitanie}<br />{profil.imie}</>}
+              {strata ? <>{e.powitanie},<br />{profil.imie}</> : wCiazy ? <>Gratulacje,<br />{profil.imie}!</> : <>{e.powitanie.replace(/!$/, "")},<br />{profil.imie}!</>}
             </h1>
             <p className="mkhero-lead">
-              {wCiazy && !trudna ? <>Za <b>{doPorodu} dni</b> powitasz swoje maleństwo. </> : null}
-              {e.podtytul} Terminów pilnujemy za Ciebie.
+              {doPorodu !== null && doPorodu >= 0 ? <>Za <b>{doPorodu} dni</b> powitasz swoje maleństwo. </> : null}
+              {zadluzony && <><b>Na Twoim koncie jest zaległość w składkach — dopóki jej nie spłacisz, zasiłek nie zostanie wypłacony.</b> </>}
+              {e.podtytul} {!strata && "Terminów pilnujemy za Ciebie."}
             </p>
             <div className="mkhero-cta">
-              {kolejny && <Link to={kolejny.link || "/przewodnik/sprawy"} className="h-btn h-btn-limonka">Złóż wniosek</Link>}
+              <Link to="/przewodnik/sciezka" className="h-btn h-btn-limonka">Moja ścieżka</Link>
               <Link to="/przewodnik/swiadczenia" className="h-btn h-btn-bialy">Co mi przysługuje?</Link>
             </div>
           </div>
@@ -188,135 +266,48 @@ export default function Pulpit() {
         <Fale />
       </section>
 
-      {/* ===================== PLAN: OŚ + CHECKLISTA ===================== */}
-      <section className="plan-sekcja" aria-labelledby="plan-tytul">
+      {/* ===================== STATUS ZWOLNIENIA (tylko gdy ma sens na tym etapie) ===================== */}
+      {pokazZwolnienie({ etap, ankieta, data, dzis }) && <StatusZwolnienia zus={zus} etap={etap} data={data} />}
+
+      {/* ===================== CO MOŻESZ ZROBIĆ ===================== */}
+      <section className="sh-sekcja" aria-labelledby="sh-tytul">
         <div className="wrap">
-          <header className="plan-glowa">
-            <span className="plan-kicker">Twój plan</span>
-            <h2 id="plan-tytul">Co i kiedy musisz zrobić</h2>
-            <p>Liczymy wszystko od terminu porodu z karty ciąży — <b>{fmtDzien(karta.terminPorodu)}</b>. Odhaczaj, co już masz za sobą.</p>
-            <div className="plan-postep">
-              <div className="plan-postep-tor" role="progressbar" aria-valuemin={0} aria-valuemax={wszystkie.length} aria-valuenow={gotowe} aria-label="Postęp listy zadań">
-                <div style={{ width: `${(gotowe / wszystkie.length) * 100}%` }} />
-              </div>
-              <span><b>{gotowe}</b> z {wszystkie.length} zrobione</span>
-            </div>
-          </header>
-
-          <ol className="plan">
-            <li className="plan-dzis">
-              <span className="plan-dzis-kropka" />
-              <span className="plan-dzis-txt">
-                Dziś, {fmtDzien(dzis, { day: "numeric", month: "long" })}{wCiazy && ` · ${tc.tydzien}. tydzień ciąży`}
-              </span>
-            </li>
-            {plan.map((k, i) => {
-              const nowaFaza = k.faza !== ostatniaFaza;
-              ostatniaFaza = k.faza;
-              const zad = k.zadania;
-              const ok = zad.length > 0 && zad.every(czyZrobione);
-              const pilne = !k.minelo && k.za <= 30;
-              const strona = i % 2 === 0 ? "prawo" : "lewo";
-              return [
-                nowaFaza && i > 0 && (
-                  <li key={`f-${k.faza}`} className="plan-faza"><span>{k.faza}</span></li>
-                ),
-                <li key={k.id} className={`plan-krok ${strona} ${k.waga} ${pilne ? "pilne" : ""} ${ok ? "ok" : ""} ${k.minelo ? "minelo" : ""}`}>
-                  <div className="plan-bok" aria-hidden="true">
-                    <span className="plan-za">{opisZa(k.za)}</span>
-                    <span className="plan-bok-pod">{k.faza === "Po porodzie" ? "jeśli poród będzie w terminie" : k.waga === "porod" ? "termin z karty ciąży" : ""}</span>
-                  </div>
-
-                  <div className="plan-wezel">
-                    {ok ? <Ikona n="check" rozmiar={30} /> : (
-                      <>
-                        <b>{new Date(k.data).getDate()}</b>
-                        <span>{fmtDzien(k.data, { month: "short" }).replace(".", "")}</span>
-                      </>
-                    )}
-                  </div>
-
-                  <article className="plan-tresc">
-                    <span className="plan-znacznik">
-                      <Ikona n={ZNACZNIK[k.waga][1]} rozmiar={14} /> {pilne && k.waga !== "krytyczny" ? "Pilne" : ZNACZNIK[k.waga][0]}
-                    </span>
-                    <p className="plan-data">
-                      {fmtDzien(k.data)}{k.doData && ` – ${fmtDzien(k.doData)}`} · <span>{opisZa(k.za)}</span>
-                    </p>
-                    <h3>{k.tytul}</h3>
-                    <p className="plan-opis">{k.opis}</p>
-                    {zad.length > 0 && (
-                      <ul className="plan-lista">
-                        {zad.map((z) => {
-                          const done = czyZrobione(z);
-                          const auto = done && !zrobione[z.id];
-                          return (
-                            <li key={z.id} className={done ? "zrobione" : ""}>
-                              <label>
-                                <input type="checkbox" checked={done} disabled={auto} onChange={() => przelacz(z.id)} />
-                                <span className="plan-check" aria-hidden="true"><Ikona n="check" rozmiar={16} /></span>
-                                <span className="plan-zad">
-                                  {z.t}
-                                  {z.info && <small>{z.info}</small>}
-                                  {auto && <small className="plan-auto">Wniosek wysłany — widzisz go w „Moich sprawach”.</small>}
-                                </span>
-                              </label>
-                              {z.link && !done && (
-                                <Link to={z.link} className="plan-akcja">{z.akcja} <Ikona n="strzalka" rozmiar={16} /></Link>
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </article>
-                </li>,
-              ];
+          <div className="sh-glowa">
+            <span className="plan-kicker">Na teraz</span>
+            <h2 id="sh-tytul">Co możesz zrobić</h2>
+          </div>
+          <div className="sh-karuzela">
+          <button type="button" className="sh-strzalka lewo" onClick={() => przesun(-1)} disabled={!przewin.lewo} aria-label="Poprzednie karty"><Ikona n="wstecz" rozmiar={22} /></button>
+          <ul className="sh-rzad" ref={rzad} onScroll={aktualizujStrzalki}>
+            {karty.map((k) => {
+              const [foto, pozycja] = ZDJECIA[k.id] || ZDJECIA.domyslne;
+              const tresc = (
+                <>
+                  <span className="sh-foto" style={{ backgroundImage: `url(${foto})`, backgroundPosition: pozycja }} aria-hidden="true">
+                    <span className="sh-ikona"><Ikona n={k.ikona} rozmiar={24} /></span>
+                    {k.wkrotce && <span className="sh-wkrotce">Wkrótce</span>}
+                  </span>
+                  <span className="sh-tekst">
+                    <b>{k.tytul}</b>
+                    <span>{k.opis}</span>
+                  </span>
+                  {!k.wkrotce && <span className="sh-cta">{k.cta} <Ikona n="strzalka" rozmiar={16} /></span>}
+                </>
+              );
+              return (
+                <li key={k.id} className={`sh-karta sh-${k.kolor} ${k.wkrotce ? "sh-nieaktywna" : ""}`}>
+                  {k.link ? <Link to={k.link}>{tresc}</Link> : k.akcja ? <button type="button" onClick={k.akcja}>{tresc}</button> : <div>{tresc}</div>}
+                </li>
+              );
             })}
-          </ol>
-        </div>
-      </section>
-
-      {/* ===================== PASY INFO (zygzak) ===================== */}
-      {zus?.ubezpieczenie && (
-        <section className="pas pas-prawo">
-          <div className="wrap pas-in">
-            <div className="pas-tekst">
-              <span className="plan-kicker">Twoje ubezpieczenie</span>
-              <h2>Masz ubezpieczenie chorobowe — zasiłek Ci przysługuje</h2>
-              <p>
-                {zus.ubezpieczenie.tytul[0].toUpperCase() + zus.ubezpieczenie.tytul.slice(1)} od {new Date(zus.ubezpieczenie.od).toLocaleDateString("pl-PL")}.
-                Zasiłek wypłaci {zus.ubezpieczenie.platnikPowyzej20 ? "Twój pracodawca" : "ZUS"}.
-                {zus.eZLA?.length > 0 && ` Masz ${zus.eZLA.length} zwolnienia lekarskie z kodem B — za ten czas dostajesz 100% podstawy.`}
-              </p>
-              <Link to="/przewodnik/swiadczenia/zasilek-macierzynski" className="pas-link">Zobacz szczegóły zasiłku <Ikona n="strzalka" rozmiar={18} /></Link>
-            </div>
-            <div className="pas-wizual pas-kwota">
-              <small>miesięcznie przy wariancie 81,5%</small>
-              <b>{zl(zus.podstawaWymiaru * 0.815)}</b>
-              <span>brutto, orientacyjnie · podstawa {zl(zus.podstawaWymiaru)}</span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="pas pas-lewo">
-        <div className="wrap pas-in">
-          <div className="pas-wizual pas-karta">
-            <span className="pas-karta-pas" />
-            <small>Karta ciąży</small>
-            <b>{fmtDzien(karta.terminPorodu)}</b>
-            <span>przewidywany termin porodu · {tc.tydzien}. tydzień</span>
-            <div className="pas-karta-tor"><div style={{ width: `${tc.procent}%` }} /></div>
-          </div>
-          <div className="pas-tekst">
-            <span className="plan-kicker">Od Twojego lekarza</span>
-            <h2>Dane z karty ciąży wpisujemy za Ciebie</h2>
-            <p>Termin porodu i liczbę dzieci bierzemy z karty ciąży — do terminów powyżej i do wniosku. Resztę danych medycznych widzisz tylko Ty.</p>
-            <Link to="/przewodnik/karta-ciazy" className="pas-link">Otwórz kartę ciąży <Ikona n="strzalka" rozmiar={18} /></Link>
+          </ul>
+          <button type="button" className="sh-strzalka prawo" onClick={() => przesun(1)} disabled={!przewin.prawo} aria-label="Następne karty"><Ikona n="strzalka" rozmiar={22} /></button>
           </div>
         </div>
       </section>
+
+      <DataModal otwarty={modal} onZamknij={() => setModal(false)} />
+      {modalZad && <ZadluzenieModal zus={zus} onZamknij={zamknijZad} />}
     </div>
   );
 }

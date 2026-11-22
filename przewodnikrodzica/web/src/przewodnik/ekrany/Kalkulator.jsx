@@ -108,8 +108,13 @@ const proc = (p) =>
   (p * 100).toLocaleString("pl-PL", { maximumFractionDigits: 1 }) + "%";
 
 export default function Kalkulator() {
-  const { zus } = useSesja();
-  const [f, setF] = useState(START);
+  const { zus, terminPorodu, dataPorodu, ankieta } = useSesja();
+  // Jeśli osoba podała wcześniej datę albo rolę — wpisujemy je z góry
+  const [f, setF] = useState(() => ({
+    ...START,
+    dataPorodu: terminPorodu || dataPorodu || "",
+    tryb: ankieta?.rola === "tata" ? "oboje" : START.tryb,
+  }));
   const ustaw = (patch) => setF((s) => ({ ...s, ...patch }));
   const adop = f.sytuacja === "przysposobienie";
   const oboje = f.tryb === "oboje";

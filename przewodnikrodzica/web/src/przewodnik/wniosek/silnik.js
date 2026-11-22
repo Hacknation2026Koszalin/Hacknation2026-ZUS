@@ -9,7 +9,7 @@
 // =====================================================================
 import { POLA, fmtData } from "./formularz.js";
 
-export const pusty = (v) => v === undefined || v === null || v === "" || v === false;
+export const pusty = (v) => v === undefined || v === null || v === "" || v === false || (Array.isArray(v) && v.length === 0);
 
 export const czyWidoczne = (pole, w, ctx) => !pole.widoczne || pole.widoczne(w, ctx);
 
@@ -30,26 +30,27 @@ export function blad(pole, w, ctx) {
   return pole.waliduj ? pole.waliduj(v, w, ctx) : null;
 }
 
-export const widocznePola = (w, ctx) => POLA.filter((p) => czyWidoczne(p, w, ctx));
+// Każda funkcja przyjmuje listę pól danego formularza (domyślnie ZAM)
+export const widocznePola = (w, ctx, pola = POLA) => pola.filter((p) => czyWidoczne(p, w, ctx));
 
 /** Pola, które blokują wysłanie (wymagane i puste albo z błędem). */
-export const braki = (w, ctx) => widocznePola(w, ctx).filter((p) => blad(p, w, ctx));
+export const braki = (w, ctx, pola = POLA) => widocznePola(w, ctx, pola).filter((p) => blad(p, w, ctx));
 
 /** Czy wszystkie pola, od których zależy dane pole, mają już odpowiedź. */
 // (pole nadrzędne, które samo „nie dotyczy”, też liczy się jako rozstrzygnięte)
-export const zaleznosciUzupelnione = (pole, w, ctx) =>
+export const zaleznosciUzupelnione = (pole, w, ctx, pola = POLA) =>
   (pole.zalezyOd || []).every((id) => {
-    const nad = POLA.find((p) => p.id === id);
+    const nad = pola.find((p) => p.id === id);
     return !pusty(w[id]) || (nad && !czyWidoczne(nad, w, ctx));
   });
 
 /** Usuwa wartości pól, które nie dotyczą osoby (powtarzamy, bo zależności bywają łańcuchowe). */
-export function wyczysc(w, ctx) {
+export function wyczysc(w, ctx, pola = POLA) {
   let wynik = { ...w };
   for (let i = 0; i < 5; i++) {
     const nowy = Object.fromEntries(
       Object.entries(wynik).filter(([id]) => {
-        const p = POLA.find((p) => p.id === id);
+        const p = pola.find((p) => p.id === id);
         return p && czyWidoczne(p, wynik, ctx);
       }),
     );
@@ -60,8 +61,8 @@ export function wyczysc(w, ctx) {
 }
 
 /** Postęp: ile wymaganych pól jest poprawnie wypełnionych. */
-export function postep(w, ctx) {
-  const wym = widocznePola(w, ctx).filter((p) => czyWymagane(p, w, ctx));
+export function postep(w, ctx, pola = POLA) {
+  const wym = widocznePola(w, ctx, pola).filter((p) => czyWymagane(p, w, ctx));
   const ok = wym.filter((p) => !blad(p, w, ctx));
   return { gotowe: ok.length, wszystkie: wym.length };
 }
@@ -73,9 +74,12 @@ export function pokazWartosc(pole, v, profil) {
     case "radio":
     case "select":
       return pole.opcje.find((o) => o.v === v)?.t || v;
+    case "wielokrotny":
+      return v.map((x) => pole.opcje.find((o) => o.v === x)?.t || x).join("; ");
     case "data":
       return fmtData(v);
     case "potwierdz":
+      if (pole.podsumowanie) return pole.podsumowanie;
       return profil ? `Potwierdzone: ${profil.imie} ${profil.nazwisko}, PESEL ${profil.pesel}` : "Potwierdzone";
     case "zgoda":
       return "Tak";

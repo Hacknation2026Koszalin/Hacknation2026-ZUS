@@ -117,7 +117,7 @@ export const POLA = [
     zalezyOd: ["powod", "urodzone"], widoczne: przedPorodem,
     nieDotyczy: "Dotyczy tylko osoby, która jest w ciąży.",
     podpowiedz: (w, ctx) =>
-      (ctx.karta && w.termin === ctx.karta.terminPorodu ? "Wpisaliśmy datę z Twojej karty ciąży — sprawdź, czy się zgadza. " : "Wpisz datę z zaświadczenia od lekarza lub położnej. ") +
+      (ctx.zSesji?.termin && w.termin === ctx.zSesji.termin ? "Wpisaliśmy datę, którą nam podałaś — sprawdź, czy się zgadza. " : "Wpisz datę z zaświadczenia od lekarza lub położnej. ") +
       "Od niej liczymy, od kiedy najwcześniej możesz zacząć zasiłek.",
     waliduj: (v, w, ctx) => (v < ctx.dzis ? "Przewidywana data porodu nie może być w przeszłości." : null),
   },
@@ -166,7 +166,7 @@ export const POLA = [
       { v: "5", t: "5 i więcej" },
     ],
     podpowiedz:
-      (w, ctx) => (ctx.karta && w.liczbaDzieci === String(ctx.karta.liczbaDzieci) ? "Wpisaliśmy liczbę z karty ciąży. " : "") + "Od tego zależy długość zasiłku: 1 dziecko — 20 tygodni, bliźnięta — 31, trojaczki — 33, czworaczki — 35, pięcioro i więcej — 37 tygodni.",
+      "Od tego zależy długość zasiłku: 1 dziecko — 20 tygodni, bliźnięta — 31, trojaczki — 33, czworaczki — 35, pięcioro i więcej — 37 tygodni.",
   },
 
   // ---------- Część 5 ----------
@@ -319,3 +319,28 @@ export const tekstPodpowiedzi = (pole, w, ctx) =>
 
 export const tekstNieDotyczy = (pole, w, ctx) =>
   typeof pole.nieDotyczy === "function" ? pole.nieDotyczy(w, ctx) : pole.nieDotyczy || "Nie dotyczy.";
+
+// Definicja ZAM w formacie wspólnym dla wszystkich kreatorów (patrz formularze/)
+export const ZAM = {
+  symbol: "ZAM",
+  tytul: "Wniosek o zasiłek macierzyński",
+  krotko: "Pieniądze za czas urlopu macierzyńskiego i rodzicielskiego.",
+  czas: "5 minut",
+  kategoria: "macierzynski",
+  czesci: CZESCI,
+  pola: POLA,
+  start: (sesja) => {
+    const w = {};
+    const rola = sesja.ankieta?.rola;
+    if (rola === "mama" || rola === "tata") w.kto = rola; // opiekun wybiera sam w formularzu
+    if (sesja.etap === "ciaza" && sesja.terminPorodu) w.termin = sesja.terminPorodu;
+    if (sesja.etap === "dziecko" && sesja.dataPorodu) w.dataUr = sesja.dataPorodu;
+    return w;
+  },
+  uwagaStart: (ctx) =>
+    ctx.zus?.ubezpieczenie?.platnikPowyzej20
+      ? "Twój pracodawca zgłasza ponad 20 osób, więc w prawdziwym życiu dokumenty złożysz u niego. W prototypie pokazujemy wniosek ZUS, żeby zaprezentować przewodnik po formularzu."
+      : null,
+  poWyslaniu: (ctx) => (ctx.zus?.ubezpieczenie?.platnikPowyzej20 ? "Zasiłek wypłaci Twój pracodawca" : "Zasiłek wypłaci ZUS"),
+  polecany: (s) => s.ankieta?.rola !== "opiekun" || true,
+};

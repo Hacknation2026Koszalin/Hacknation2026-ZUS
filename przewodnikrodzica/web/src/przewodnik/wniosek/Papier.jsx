@@ -3,7 +3,7 @@
 // W trybie „Prowadź mnie” tylko JEDNO pole jest podświetlone, reszta
 // jest przyciemniona i zablokowana (atrybut inert).
 // =====================================================================
-import { CZESCI, POLA, tekstNieDotyczy } from "./formularz.js";
+import { ZAM, tekstNieDotyczy } from "./formularz.js";
 import { blad, czyWidoczne, czyWymagane, zaleznosciUzupelnione } from "./silnik.js";
 import Ikona from "./Ikona.jsx";
 
@@ -50,6 +50,28 @@ function Wejscie({ pole, w, ctx, ustaw, bledne }) {
           ))}
         </select>
       );
+    case "wielokrotny": {
+      const lista = Array.isArray(v) ? v : [];
+      const przelacz = (x) => ustaw(pole.id, lista.includes(x) ? lista.filter((y) => y !== x) : [...lista, x]);
+      return (
+        <div className="wn-opcje" role="group" aria-labelledby={`et-${pole.id}`} aria-describedby={opisBledu}>
+          {pole.opcje.map((o, i) => (
+            <label key={o.v} className={`wn-opcja ${lista.includes(o.v) ? "zazn" : ""}`}>
+              <input type="checkbox" id={i === 0 ? id : undefined} checked={lista.includes(o.v)} onChange={() => przelacz(o.v)} />
+              <span className="wn-kratka" aria-hidden="true">{lista.includes(o.v) ? "X" : ""}</span>
+              <span>
+                <b>{o.t}</b>
+                {o.opis && <small>{o.opis}</small>}
+              </span>
+            </label>
+          ))}
+        </div>
+      );
+    }
+    case "obszar":
+      return <textarea {...wspolne} rows={pole.wiersze || 4} placeholder={pole.placeholder} value={v} onChange={(e) => ustaw(pole.id, e.target.value)} />;
+    case "liczba":
+      return <input {...wspolne} type="number" min={pole.min ?? 1} max={pole.max ?? 99} inputMode="numeric" value={v} onChange={(e) => ustaw(pole.id, e.target.value)} />;
     case "data":
       return <input {...wspolne} type="date" value={v} onChange={(e) => ustaw(pole.id, e.target.value)} />;
     case "pesel":
@@ -75,14 +97,18 @@ function Wejscie({ pole, w, ctx, ustaw, bledne }) {
       );
     case "potwierdz": {
       const p = ctx.profil || {};
+      // Pole może pokazać własne wiersze (np. dane płatnika z ZUS) — domyślnie dane z mObywatela
+      const wiersze = pole.wiersze
+        ? pole.wiersze(ctx)
+        : [["Imię i nazwisko", `${p.imie} ${p.nazwisko}`], ["PESEL", p.pesel, true], ["Adres zamieszkania", p.adres]];
       return (
         <div className="wn-potw">
           <dl>
-            <div><dt>Imię i nazwisko</dt><dd>{p.imie} {p.nazwisko}</dd></div>
-            <div><dt>PESEL</dt><dd className="wn-mono">{p.pesel}</dd></div>
-            <div><dt>Adres zamieszkania</dt><dd>{p.adres}</dd></div>
+            {wiersze.map(([dt, dd, mono]) => (
+              <div key={dt}><dt>{dt}</dt><dd className={mono ? "wn-mono" : undefined}>{dd}</dd></div>
+            ))}
           </dl>
-          <p className="wn-zrodlo">Źródło: mObywatel (symulacja)</p>
+          <p className="wn-zrodlo">Źródło: {pole.zrodlo || "mObywatel"} (symulacja)</p>
           {v ? (
             <p className="wn-potw-ok"><Ikona n="check" /> Dane potwierdzone <button type="button" className="wn-link" onClick={() => ustaw(pole.id, false)}>Cofnij</button></p>
           ) : (
@@ -120,12 +146,12 @@ function Wejscie({ pole, w, ctx, ustaw, bledne }) {
   }
 }
 
-function Pole({ pole, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBlad, dymek }) {
+function Pole({ pole, pola, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBlad, dymek }) {
   const widoczne = czyWidoczne(pole, w, ctx);
 
   // Pole, które nie dotyczy tej osoby — wyszarzone, nigdy wymagane
   if (!widoczne) {
-    const znane = zaleznosciUzupelnione(pole, w, ctx);
+    const znane = zaleznosciUzupelnione(pole, w, ctx, pola);
     return (
       <div className="wn-pole wn-nd" id={`pole-${pole.id}`} inert={prowadz || undefined}>
         <span className="wn-nr">{pole.nr}.</span>
@@ -149,7 +175,7 @@ function Pole({ pole, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBlad, dym
     <div className={klasy} id={`pole-${pole.id}`} inert={(prowadz && !aktywne) || undefined}>
       <span className="wn-nr">{pole.nr}.</span>
       <div className="wn-tresc">
-        {pole.typ !== "zgoda" && (
+        {pole.typ !== "zgoda" && pole.typ !== "info" && (
           <label className="wn-etyk" id={`et-${pole.id}`} htmlFor={pole.typ === "radio" ? undefined : `in-${pole.id}`}>
             {pole.etykieta}
             {wym ? <span className="wn-gw" title="Pole wymagane"> *</span> : <span className="wn-opc"> (nieobowiązkowe)</span>}
@@ -168,7 +194,7 @@ function Pole({ pole, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBlad, dym
   );
 }
 
-export default function Papier({ w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBledy, bladAktywnego, dymek }) {
+export default function Papier({ def = ZAM, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBledy, bladAktywnego, dymek }) {
   return (
     <div className="wn-papier">
       <header className="wn-papier-glowa" inert={prowadz || undefined}>
@@ -176,23 +202,24 @@ export default function Papier({ w, ctx, ustaw, prowadz, aktywne, pominiete, pok
           <span>Wzór uproszczony</span>
           <small>prototyp — nie jest to formularz ZUS</small>
         </div>
-        <div className="wn-symbol">ZAM</div>
+        <div className="wn-symbol">{def.symbol}</div>
       </header>
       <div inert={prowadz || undefined}>
-        <h2 className="wn-tytul">Wniosek o zasiłek macierzyński</h2>
+        <h2 className="wn-tytul">{def.tytul}</h2>
         <p className="wn-instr">
           Pola oznaczone <span className="wn-gw">*</span> są wymagane. Pola, które Cię nie dotyczą, wyłączyliśmy automatycznie.
         </p>
       </div>
-      {CZESCI.map((c, i) => (
+      {def.czesci.map((c, i) => (
         <section key={c.id} className="wn-czesc" aria-labelledby={`cz-${c.id}`}>
           <h3 id={`cz-${c.id}`} inert={prowadz || undefined}>
             <span>Część {i + 1}.</span> {c.tytul}
           </h3>
-          {POLA.filter((p) => p.czesc === c.id).map((p) => (
+          {def.pola.filter((p) => p.czesc === c.id).map((p) => (
             <Pole
               key={p.id}
               pole={p}
+              pola={def.pola}
               w={w}
               ctx={ctx}
               ustaw={ustaw}

@@ -7,8 +7,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { MENU } from "../data/nawigacja.js";
+import { PrzyciskDostepnosci } from "../przewodnik/komponenty/Dostepnosc.jsx";
 
-export default function Header() {
+const JEZYKI = [["PL", "Polski", true], ["ANG", "English — wkrótce", false], ["UKR", "Українська — wkrótce", false]];
+
+export default function Header({ bezMenu = false }) {
   const [otwarte, setOtwarte] = useState(null);
   const [mobilne, setMobilne] = useState(false);
   const [fraza, setFraza] = useState("");
@@ -61,7 +64,7 @@ export default function Header() {
   };
 
   return (
-    <header className="zus-header" ref={headerRef}>
+    <header className={`zus-header ${bezMenu ? "zus-header--konto" : ""}`} ref={headerRef}>
 
       <div className="zus-header__top">
         <div className="wrap zus-header__top-inner">
@@ -84,41 +87,54 @@ export default function Header() {
             </span>
           </Link>
 
+          {bezMenu ? (
+            <div className="zus-header__akcje">
+              {/* Tu menu konta wstawia: czas sesji, powiadomienia, ustawienia, samouczek */}
+              <div id="naglowek-akcje" className="naglowek-akcje" />
+              <PrzyciskDostepnosci ikona />
+              <div className="jezyki" role="group" aria-label="Język serwisu">
+                {JEZYKI.map(([k, opis, aktywny]) => (
+                  <button key={k} type="button" lang={k === "PL" ? "pl" : k === "ANG" ? "en" : "uk"} aria-pressed={aktywny} title={opis} className={aktywny ? "aktywny" : ""} disabled={!aktywny}>{k}</button>
+                ))}
+              </div>
+            </div>
+          ) : (
           <form
-            className="zus-header__search"
-            role="search"
-            onSubmit={szukaj}
-          >
-            <label htmlFor="zus-search" className="sr-only">
-              Szukaj w serwisie
-            </label>
+              className="zus-header__search"
+              role="search"
+              onSubmit={szukaj}
+            >
+              <label htmlFor="zus-search" className="sr-only">
+                Szukaj w serwisie
+              </label>
+  
+              <input
+                id="zus-search"
+                type="search"
+                placeholder="Szukaj w serwisie"
+                value={fraza}
+                onChange={(e) => setFraza(e.target.value)}
+              />
+  
+              <button type="submit" aria-label="Szukaj">
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="10.8" cy="10.8" r="7.2" />
+                  <path d="m16.2 16.2 4.3 4.3" />
+                </svg>
+              </button>
+            </form>
+          )}
 
-            <input
-              id="zus-search"
-              type="search"
-              placeholder="Szukaj w serwisie"
-              value={fraza}
-              onChange={(e) => setFraza(e.target.value)}
-            />
-
-            <button type="submit" aria-label="Szukaj">
-              <svg
-                width="19"
-                height="19"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <circle cx="10.8" cy="10.8" r="7.2" />
-                <path d="m16.2 16.2 4.3 4.3" />
-              </svg>
-            </button>
-          </form>
-
-          <button
+          {!bezMenu && <button
             type="button"
             className="zus-header__mobile-toggle"
             aria-expanded={mobilne}
@@ -150,11 +166,11 @@ export default function Header() {
                 </svg>
               </>
             )}
-          </button>
+          </button>}
         </div>
       </div>
 
-      <nav
+      {!bezMenu && <nav
         id="zus-navigation"
         className={`zus-nav ${mobilne ? "is-open" : ""}`}
         aria-label="Menu główne"
@@ -285,7 +301,7 @@ export default function Header() {
             <span aria-hidden="true">↗</span>
           </NavLink>
         </div>
-      </nav>
+      </nav>}
     </header>
   );
 }

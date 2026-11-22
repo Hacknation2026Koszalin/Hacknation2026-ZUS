@@ -129,3 +129,54 @@ Działa bez backendu (zapis w przeglądarce). Z backendem wnioski trzymane są w
 - Hero: zamiast kół o ciąży — odliczanie dni do **kolejnego wniosku** (najbliższy termin wniosku, który nie jest jeszcze złożony; po wysłaniu ZAM przeskakuje na 800+).
 - Pod spodem oś czasu prawo–lewo z checklistą przy każdym kroku. Kroki i zadania: `przewodnik/plan.js`. Odhaczenia zapisują się w przeglądarce.
 - Na dole dwa szerokie pasy (ubezpieczenie i karta ciąży), na zmianę tekst/obraz.
+
+---
+
+## NOWE (21.11, wieczór): uproszczenie i mniej danych
+
+- **Krótka ankieta po wyborze etapu** (`przewodnik/sytuacja.js`): kim jesteś dla dziecka, jak pracujesz, a przy działalności/zleceniu — czy masz dobrowolne chorobowe. Odpowiedź o pracy podpowiadamy z danych ZUS. Na końcu podsumowanie: zasiłek macierzyński czy świadczenie rodzicielskie, kto wypłaca, gdzie złożyć wniosek.
+- **Nagłówek z logo, „Dostępność” i wyszukiwarką** wraca w strefie konta — bez przycisków logowania i bez menu serwisu (`components/TopBar.jsx`, `components/Header.jsx`, `components/Layout.jsx`).
+- **Wybór etapu:** lepsza hierarchia, bez prostokąta na zdjęciu i bez napisu „Przewodnik młodego rodzica”. Nowe nazwy: „Dziecko już się urodziło”, „Straciliśmy dziecko”.
+- **Karta ciąży usunięta** (strona, zakładka, dane, endpoint w .NET). Zamiast niej **opcjonalna data** (termin porodu / data urodzenia / data przyjęcia) — okno `komponenty/DataKluczowa.jsx`, trzymana tylko w sesji przeglądarki.
+- **Oś czasu przeniesiona do „Mojej ścieżki”** (`ekrany/Sciezka.jsx`, `komponenty/OsCzasu.jsx`, kroki w `plan.js`). Bez daty pokazuje terminy ustawowe („do 21 dni po porodzie”), z datą — konkretne dni.
+- **Moje konto:** hero + „Co możesz zrobić” (wysokie karty, przewijane w bok) + „Twoja sytuacja”.
+- Wniosek ZAM i kalkulator same wpisują rolę i datę, jeśli osoba je podała.
+
+## Zmiany v3
+- Po zalogowaniu pierwsze pytanie: „Kim jesteś dla dziecka?” (Mamą / Tatą / Opiekunem). Tata widzi „Spodziewam się dziecka”, opiekun — adopcję lub rodzinę zastępczą. Bez „Pomiń” w pytaniach; „Pomiń samouczek” tylko na slajdach.
+- Poprawiony tekst o okresie wyczekiwania (macierzyński bez wyczekiwania, L4 w ciąży po 30/90 dniach).
+- Zębatka w menu: ustawienia (data, odpowiedzi, czyszczenie danych, wyloguj). Zmiana daty także w hero.
+- Usunięty wózek z menu i blok „Twoja sytuacja” z pulpitu.
+- Zakładka „Świadczenia” połączona z „Wsparciem”: menu rozwija się po najechaniu, strona /przewodnik/wsparcie zawiera wszystkie świadczenia i kontakty.
+- Karty „Co możesz zrobić” na całą szerokość, każda ze zdjęciem (podmiana w Pulpit.jsx → ZDJECIA).
+- Asystent: „Asystent ZUSanna podpowie Ci”. Nowa stopka konta (components/StopkaKonta.jsx).
+
+## Zmiany v4
+- Wariant zaległości w składkach: hero „Zasiłek wstrzymany” + okno z zasadami (1% min. wynagrodzenia, 6 miesięcy, raty/odroczenie). Włączasz w Ustawienia → Tryb demonstracyjny.
+- Menu z ikonami; „Wsparcie” → „Pomoc” (jedna lista bez podziału); „Wyloguj się” zamiast inicjałów; dzwonek z terminami na 30 dni.
+- Powiadomienia przeglądarki (raz dziennie przy wejściu, 3/7/14 dni przed) + eksport terminów do kalendarza (.ics, link Google). Pliki: komponenty/Powiadomienia.jsx, kalendarz.js.
+- Ułatwienia dostępu (WCAG 2.1 AA): wielkość tekstu, wysoki kontrast, odstępy, podkreślone linki, bez animacji, widoczny fokus. Przycisk „Dostępność” w górnym pasku i w ustawieniach. Plik: komponenty/Dostepnosc.jsx.
+- ZUSanna — czat w prawym dolnym rogu, od razu wita „Cześć! Jak mogę Ci pomóc?”. Odpowiedzi z gotowej bazy (bez AI w prototypie). Plik: komponenty/Zusanna.jsx.
+- Karty „Co możesz zrobić”: 3 na widoku + karuzela ze strzałkami.
+- Stopka: oficjalne źródła o uprawnieniach (ZUS, MRPiPS, PIP).
+
+## Zmiany v5
+- Automatyczne wylogowanie po 15 min bez aktywności: licznik w menu (kliknięcie przedłuża), minutę przed końcem okno z odliczaniem. Test: `sessionStorage.setItem("czas-sesji-s","70")`. Plik: komponenty/CzasSesji.jsx.
+- „Status zwolnienia lekarskiego” pod karuzelą (dane z e-ZLA: trwa/zakończone, dzień X z N, kto wypłaca). Plik: komponenty/Zwolnienie.jsx. Dane demo: zwolnienie 9.11–6.12.2026.
+- Hero pokazuje najbliższy krok ze ścieżki (ten sam co w dzwonku), a nie zawsze wniosek. „Dodaj do kalendarza” tylko w dzwonku i w ustawieniach.
+- Menu: osobno „Świadczenia” (rozwijane) i „Pomoc” (kontakty, mama@zus.pl, ZUSanna, samouczek).
+- Licznik zawsze okrągły (aspect-ratio 1:1).
+- Zaległość w składkach: czerwony pasek na każdej stronie, czerwony hero, wstrzymane świadczenia i zwolnienie na czerwono.
+
+## Zmiany v6
+- Status zwolnienia od razu pod hero; widoczny tylko dla mamy przed porodem (planuję / w ciąży, termin jeszcze nie minął). Koniec L4 trafia do dzwonka i licznika; przy terminie porodu podpowiedź o starcie urlopu macierzyńskiego (6 tyg. przed).
+- Po zalogowaniu: bez górnego paska i bez wyszukiwarki. W nagłówku: czas sesji, powiadomienia, ustawienia, samouczek, dostępność (ikona ludzika), języki PL / ANG / UKR. „Wyloguj się” zostaje w pasku menu.
+- Kafelki białe, na hover zielone, nowy cień. ZUSanna zielona, ze zdjęciem (public/zusanna.jpg — wycinek z powitanie.jpg).
+
+## Zmiany v7 — „Złóż wniosek”
+- Nowa zakładka „Złóż wniosek” (/przewodnik/wnioski): tylko formularze; „Świadczenia” zostają z wiedzą.
+- Jeden kreator dla wszystkich formularzy: wniosek/Kreator.jsx (dawny WniosekZAM), definicje w wniosek/formularze/index.js, wspólne klocki w formularze/wspolne.js.
+- Kreatory: ZAM, ZAS-26, ZAS-33, ZAS-23, ZAS-55, ZAS-39, ZPM, ZPO, ZPW, ZZD, ZAS-58, ZAS-59.
+- Z-3, Z-3a, ZAS-15, ZAS-24, ZAS-40 wypełnia pracodawca/płatnik/lekarz — pokazujemy, jak o nie poprosić (z gotową treścią e-maila).
+- Polecane formularze wg etapu, roli i wieku. Numer sprawy ma prefiks formularza (np. ZZD-2026-…). Urzędnik i Moje sprawy obsługują każdy typ.
+- Nowy formularz = nowy obiekt w formularze/index.js (pola: radio, select, wielokrotny, tekst, obszar, liczba, data, pesel, plik, potwierdz, zgoda).

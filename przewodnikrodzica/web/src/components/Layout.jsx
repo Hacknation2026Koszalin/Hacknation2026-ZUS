@@ -2,9 +2,10 @@ import { Outlet, useLocation } from "react-router-dom";
 import TopBar from "./TopBar.jsx";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
+import StopkaKonta from "./StopkaKonta.jsx";
 
 // Po zalogowaniu do przewodnika chowamy menu serwisu — zostaje tylko menu rodzica.
-const STREFA_KONTA = /^\/przewodnik\/(pulpit|karta-ciazy|sciezka|swiadczenia|kalkulator|sprawy|wsparcie|urzednik|witaj)/;
+const STREFA_KONTA = /^\/przewodnik\/(pulpit|sciezka|swiadczenia|kalkulator|sprawy|wsparcie|pomoc|wnioski|urzednik|witaj)/;
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -12,18 +13,13 @@ export default function Layout() {
   return (
     <>
       <a className="skip" href="#tresc">Przejdź do treści</a>
+      {/* W strefie konta: bez górnego paska i menu serwisu; w nagłówku ikony konta, dostępność i języki */}
       {!wKoncie && <TopBar />}
-      {!wKoncie && <Header />}
+      <Header bezMenu={wKoncie} />
       <main id="tresc">
         <Outlet />
       </main>
-      {wKoncie ? (
-        <footer className="modul-stopka">
-          <div className="wrap">Przewodnik młodego rodzica · wersja prototypowa · HackNation 2026</div>
-        </footer>
-      ) : (
-        <Footer />
-      )}
+      {wKoncie ? <StopkaKonta /> : <Footer />}
     </>
   );
 }

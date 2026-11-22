@@ -5,7 +5,10 @@
 // =====================================================================
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CZESCI, POLA, dniMiedzy, fmtData, zl } from "../wniosek/formularz.js";
+import { ZAM, dniMiedzy, fmtData, zl } from "../wniosek/formularz.js";
+import { formularz } from "../wniosek/formularze/index.js";
+
+const defDla = (wn) => formularz(wn?.typ) || ZAM;
 import { czyWidoczne, czyWymagane, pokazWartosc } from "../wniosek/silnik.js";
 import { STATUSY, pobierzWnioski, zmienStatus } from "../wniosek/wnioski.js";
 import Ikona from "../wniosek/Ikona.jsx";
@@ -27,7 +30,7 @@ function kontrole(wn) {
     } else wynik.push(["ok", "Wariant 81,5%: wniosek złożony przed porodem — termin zachowany"]);
   } else if (d.wariant === "100") wynik.push(["info", "Wariant 100% — o urlop rodzicielski osoba poprosi osobno"]);
   if (d.termin && d.odKiedy) wynik.push(["ok", `Początek zasiłku ${fmtData(d.odKiedy)} — ${dniMiedzy(d.odKiedy, d.termin)} dni przed przewidywanym porodem (maks. 42)`]);
-  const pliki = POLA.filter((p) => p.typ === "plik" && d[p.id]);
+  const pliki = defDla(wn).pola.filter((p) => p.typ === "plik" && d[p.id]);
   if (pliki.length) wynik.push(["ok", `Załączniki: ${pliki.map((p) => d[p.id]).join(", ")}`]);
   if (d.akt === "rejestr") wynik.push(["info", "Urodzenie do potwierdzenia w rejestrze stanu cywilnego"]);
   wynik.push(["info", k.platnikPowyzej20 ? `Zasiłek wypłaca płatnik: ${k.platnik} (ponad 20 ubezpieczonych)` : "Zasiłek wypłaca ZUS"]);
@@ -139,8 +142,8 @@ export default function Urzednik() {
               <div className="wn-karta">
                 <h2 style={{ fontSize: 18, marginTop: 0 }}>Treść wniosku</h2>
                 {prosba && <p className="wn-alert uwaga" style={{ display: "block" }}>Zaznacz pola, które obywatel ma poprawić.</p>}
-                {CZESCI.map((c, i) => {
-                  const wid = POLA.filter((p) => p.czesc === c.id && czyWidoczne(p, wn.dane || {}, ctx));
+                {defDla(wn).czesci.map((c, i) => {
+                  const wid = defDla(wn).pola.filter((p) => p.czesc === c.id && czyWidoczne(p, wn.dane || {}, ctx));
                   if (!wid.length) return null;
                   return (
                     <div key={c.id} style={{ marginBottom: 12 }}>

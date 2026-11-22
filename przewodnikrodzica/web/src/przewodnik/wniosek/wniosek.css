@@ -325,3 +325,13 @@ a.sw-kafel:hover { border-color: var(--w-p); }
   .sw-uklad { display: block; }
 }
 .wn-alert > .ikona { flex: none; margin-top: 2px; }
+
+/* v7 — nowe typy pól */
+.wn-pole input[type="number"], .wn-pole textarea { width: 100%; max-width: 560px; min-height: 44px; border: 1px solid #9fb0c2; border-radius: 6px; padding: 8px 12px; font: inherit; background: #fff; color: var(--w-ink); }
+.wn-pole input[type="number"] { max-width: 120px; }
+.wn-pole textarea { resize: vertical; line-height: 1.5; }
+.wn-pole textarea:focus-visible, .wn-pole input[type="number"]:focus-visible { outline: 3px solid var(--w-blue, #025ac4); outline-offset: 1px; }
+.wn-kiedy { background: #f3f8ec; border-left: 4px solid #8fd201; border-radius: 10px; padding: 12px 16px; margin: 0 0 16px; }
+.wn-kiedy b { display: block; margin-bottom: 4px; }
+.wn-kiedy ul { margin: 0; padding-left: 20px; }
+.wn-kiedy li + li { margin-top: 4px; }

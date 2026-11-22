@@ -27,7 +27,7 @@ const wstaw = (wniosek) => {
 };
 
 const teraz = () => new Date().toISOString();
-const nowyNumer = () => `ZAM-${new Date().getFullYear()}-${String(Math.floor(100000 + Math.random() * 900000))}`;
+const nowyNumer = (typ = "ZAM") => `${typ}-${new Date().getFullYear()}-${String(Math.floor(100000 + Math.random() * 900000))}`;
 
 async function api(sciezka, opcje) {
   const r = await fetch(sciezka, {
@@ -46,7 +46,7 @@ export async function wyslijWniosek(wniosek) {
     const poprzedni = wczytaj().find((w) => w.numer === wniosek.numer);
     return wstaw({
       ...wniosek,
-      numer: wniosek.numer || nowyNumer(),
+      numer: wniosek.numer || nowyNumer(wniosek.typ),
       status: "u_urzednika",
       komentarz: null,
       doPoprawy: [],
