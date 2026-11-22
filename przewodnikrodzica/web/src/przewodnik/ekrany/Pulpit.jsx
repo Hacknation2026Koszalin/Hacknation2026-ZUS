@@ -4,6 +4,7 @@
 // + Twoja sytuacja (z ankiety). Oś czasu jest w „Mojej ścieżce”.
 // =====================================================================
 import { useEffect, useRef, useState } from "react";
+import { useJezyk } from "../jezyk.js";
 import { Link, useNavigate } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
 import { DANE_ZUS_ZAPAS, ETAPY, PROFIL_MOBYWATEL } from "../dane.js";
@@ -17,6 +18,7 @@ import { ZadluzenieModal, kwota, maZadluzenie } from "../komponenty/Zadluzenie.j
 import { OTWORZ_ZUSANNE } from "../komponenty/Zusanna.jsx";
 import { useNadchodzace } from "../komponenty/Powiadomienia.jsx";
 import StatusZwolnienia, { pokazZwolnienie } from "../komponenty/Zwolnienie.jsx";
+import { KartaUmowy } from "../komponenty/Umowa.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
 
 
@@ -106,6 +108,7 @@ const ZDJECIA = {
 
 export default function Pulpit() {
   const sesja = useSesja();
+  const [jezyk, t] = useJezyk();
   const { profil = PROFIL_MOBYWATEL, etap = "ciaza", zus = DANE_ZUS_ZAPAS, ankieta = {}, ustaw } = sesja;
   const nav = useNavigate();
   const e = ETAPY.find((x) => x.id === etap) || ETAPY[1];
@@ -152,7 +155,9 @@ export default function Pulpit() {
   if (sytuacja.swiadczenie === "rodzicielskie")
     karty.push({ id: "rodz", kolor: "turkus", ikona: "info", tytul: "Świadczenie rodzicielskie", opis: "Sprawdź, gdzie i kiedy złożyć wniosek.", link: "/przewodnik/swiadczenia#swiadczenie-rodzicielskie", cta: "Świadczenia" });
   if (strata)
-    karty.push({ id: "wsparcie", kolor: "bialy", ikona: "serce", tytul: "Pomoc dla Ciebie", opis: "Kontakty do wsparcia psychologicznego.", link: "/przewodnik/pomoc#wsparcie-psychologiczne", cta: "Pomoc" });
+    karty.push({ id: "wsparcie", kolor: "bialy", ikona: "serce", tytul: "Pomoc dla Ciebie", opis: "Kontakty do wsparcia psychologicznego.", link: "/przewodnik/pomoc#organizacje", cta: "Pomoc" });
+  if (!strata && /umowa o pracę/.test(zus?.ubezpieczenie?.tytul || "") && !sesja.ustanie?.data)
+    karty.push({ id: "umowa", kolor: "bialy", ikona: "teczka", tytul: "Kończy się Twoja umowa?", opis: "Dodaj datę — sprawdzimy, czy przedłuży się do porodu i co z zasiłkiem.", akcja: () => window.dispatchEvent(new Event("otworz-ustawienia")), cta: "Dodaj datę" });
   karty.push({ id: "asystent", kolor: "gradient", ikona: "dymek", tytul: "Asystent ZUSanna podpowie Ci", opis: "Zapytaj własnymi słowami o urlopy, zasiłki i wnioski.", akcja: () => window.dispatchEvent(new Event(OTWORZ_ZUSANNE)), cta: "Zapytaj ZUSannę" });
   if (zadluzony)
     karty.unshift({ id: "zadluzenie", kolor: "bialy sh-zadluzenie", ikona: "alert", tytul: "Spłać zaległość, by dostać zasiłek", opis: `Zaległość w składkach: ${kwota(zus.zadluzenie)}.`, akcja: () => setModalZad(true), cta: "Co to oznacza?" });
@@ -202,13 +207,13 @@ export default function Pulpit() {
                   <div className="licznik-srodek">
                     <span className="licznik-liczba">{zostalo}</span>
                     <span className="licznik-dni">dni</span>
-                    <span className="licznik-pod">{kolejny.wniosek ? "na złożenie wniosku" : "do kolejnego kroku"}</span>
+                    <span className="licznik-pod">{kolejny.wniosek ? t("na złożenie wniosku") : t("do kolejnego kroku")}</span>
                   </div>
                 </div>
                 <Link to={kolejny.link || "/przewodnik/sciezka"} className="licznik-wstega" key={kolejny.id}>
                   <span className="licznik-wstega-ikona"><Ikona n="dokument" rozmiar={22} /></span>
                   <span>
-                    <small>{kolejny.wniosek ? "Kolejny wniosek" : "Kolejny krok"}</small>
+                    <small>{kolejny.wniosek ? t("Kolejny wniosek") : t("Kolejny krok")}</small>
                     <b>{nazwaKroku}</b>
                     <em>ostatni dzień: {fmtDzien(kolejny.termin)}</em>
                   </span>
@@ -250,21 +255,23 @@ export default function Pulpit() {
               {nazwaEtapu(etap, ankieta) || e.nazwa} <span>· zmień</span>
             </button>
             <h1>
-              {strata ? <>{e.powitanie},<br />{profil.imie}</> : wCiazy ? <>Gratulacje,<br />{profil.imie}!</> : <>{e.powitanie.replace(/!$/, "")},<br />{profil.imie}!</>}
+              {strata ? <>{t(e.powitanie)},<br />{profil.imie}</> : wCiazy ? <>{t("Gratulacje")},<br />{profil.imie}!</> : <>{t(e.powitanie.replace(/!$/, ""))},<br />{profil.imie}!</>}
             </h1>
             <p className="mkhero-lead">
-              {doPorodu !== null && doPorodu >= 0 ? <>Za <b>{doPorodu} dni</b> powitasz swoje maleństwo. </> : null}
+              {jezyk === "pl" && doPorodu !== null && doPorodu >= 0 ? <>Za <b>{doPorodu} dni</b> powitasz swoje maleństwo. </> : null}
               {zadluzony && <><b>Na Twoim koncie jest zaległość w składkach — dopóki jej nie spłacisz, zasiłek nie zostanie wypłacony.</b> </>}
-              {e.podtytul} {!strata && "Terminów pilnujemy za Ciebie."}
+              {jezyk === "pl" ? <>{e.podtytul} {!strata && "Terminów pilnujemy za Ciebie."}</> : t("lead-pulpit")}
             </p>
             <div className="mkhero-cta">
-              <Link to="/przewodnik/sciezka" className="h-btn h-btn-limonka">Moja ścieżka</Link>
-              <Link to="/przewodnik/swiadczenia" className="h-btn h-btn-bialy">Co mi przysługuje?</Link>
+              <Link to="/przewodnik/sciezka" className="h-btn h-btn-limonka">{t("Moja ścieżka")}</Link>
+              <Link to="/przewodnik/swiadczenia" className="h-btn h-btn-bialy">{t("Co mi przysługuje?")}</Link>
             </div>
           </div>
         </div>
         <Fale />
       </section>
+
+      <KartaUmowy ustanie={sesja.ustanie} etap={etap} terminPorodu={sesja.terminPorodu} onZmien={() => window.dispatchEvent(new Event("otworz-ustawienia"))} />
 
       {/* ===================== STATUS ZWOLNIENIA (tylko gdy ma sens na tym etapie) ===================== */}
       {pokazZwolnienie({ etap, ankieta, data, dzis }) && <StatusZwolnienia zus={zus} etap={etap} data={data} />}
@@ -274,7 +281,7 @@ export default function Pulpit() {
         <div className="wrap">
           <div className="sh-glowa">
             <span className="plan-kicker">Na teraz</span>
-            <h2 id="sh-tytul">Co możesz zrobić</h2>
+            <h2 id="sh-tytul">{t("Co możesz zrobić")}</h2>
           </div>
           <div className="sh-karuzela">
           <button type="button" className="sh-strzalka lewo" onClick={() => przesun(-1)} disabled={!przewin.lewo} aria-label="Poprzednie karty"><Ikona n="wstecz" rozmiar={22} /></button>

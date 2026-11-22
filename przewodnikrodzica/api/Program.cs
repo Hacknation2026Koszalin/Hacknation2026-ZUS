@@ -88,5 +88,6 @@ record Zdarzenie(string Data, string Status, string Opis);
 // "Dane" i "Kontekst" zostawiamy jako dowolny JSON — formularz definiuje frontend.
 record Wniosek(string? Numer, string Typ, string Nazwa, Osoba Osoba,
     System.Text.Json.JsonElement Dane, System.Text.Json.JsonElement? Kontekst,
-    string? Status, string? Komentarz, List<string>? DoPoprawy, string? Zlozono, List<Zdarzenie>? Historia);
+    string? Status, string? Komentarz, List<string>? DoPoprawy, string? Zlozono, List<Zdarzenie>? Historia,
+    string? Adresat = null, string? AdresatNazwa = null);
 record ZmianaStatusu(string Status, string? Komentarz, List<string>? DoPoprawy);

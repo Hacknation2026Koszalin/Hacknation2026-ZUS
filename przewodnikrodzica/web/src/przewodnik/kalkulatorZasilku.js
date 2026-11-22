@@ -2,16 +2,31 @@
 // Wymiary i stawki wg „Zasiłkowego Przewodnika Przyszłego Rodzica”
 // (ustawa zasiłkowa + Kodeks pracy). Przed wdrożeniem zweryfikuj je z aktualnym stanem prawnym.
 
-export const SKLADKI_PRACOWNIKA = 0.1371; // emerytalna 9,76% + rentowa 1,5% + chorobowa 2,45%
-export const MACIERZYNSKI_TYG = { 1: 20, 2: 31, 3: 33, 4: 35, 5: 37 }; // wg liczby dzieci (5 = 5 i więcej)
-export const MIN_MATKA_MAC_TYG = 14;
-export const NIEPRZENOSZALNE_ROD_TYG = 9;
-export const OJCOWSKI_DNI = 14;
+// Wszystkie wartości z przepisów pochodzą z panelu administracyjnego (parametry.js).
+// `export let` = żywe powiązania: po zmianie w panelu importujące moduły widzą nowe wartości.
+import { P, naZmiane } from "./parametry.js";
+
+export let SKLADKI_PRACOWNIKA = 0.1371; // emerytalna 9,76% + rentowa 1,5% + chorobowa 2,45%
+export let MACIERZYNSKI_TYG = { 1: 20, 2: 31, 3: 33, 4: 35, 5: 37 }; // wg liczby dzieci (5 = 5 i więcej)
+export let MIN_MATKA_MAC_TYG = 14;
+export let NIEPRZENOSZALNE_ROD_TYG = 9;
+export let OJCOWSKI_DNI = 14;
+export function wczytajParametry() {
+  SKLADKI_PRACOWNIKA = P.skladkiPracownika / 100;
+  MACIERZYNSKI_TYG = { ...P.macierzynskiTyg };
+  MIN_MATKA_MAC_TYG = P.minMatkaTyg;
+  NIEPRZENOSZALNE_ROD_TYG = P.nieprzenoszalneTyg;
+  OJCOWSKI_DNI = P.ojcowskiDni;
+}
+wczytajParametry();
+if (typeof window !== "undefined") naZmiane(wczytajParametry);
 
 export const maxMacierzynski = (n) =>
   MACIERZYNSKI_TYG[Math.min(Math.max(n, 1), 5)];
-export const pulaRodzicielski = (n, zaZyciem) =>
-  zaZyciem ? (n > 1 ? 67 : 65) : n > 1 ? 43 : 41;
+export const pulaRodzicielski = (n, zaZyciem) => {
+  const r = P.rodzicielskiTyg;
+  return zaZyciem ? (n > 1 ? r.zaZyciemWiele : r.zaZyciemJedno) : n > 1 ? r.wiele : r.jedno;
+};
 
 export const podstawaZBrutto = (brutto) =>
   Math.round((Number(brutto) || 0) * (1 - SKLADKI_PRACOWNIKA) * 100) / 100;
@@ -45,7 +60,8 @@ export function oblicz(s) {
 
   // --- uprawnienia dla przyjętego dziecka (wiek) ---
   if (adop) {
-    const limit = s.typAdopcji === "zastepcza" ? (s.odroczenie ? 10 : 7) : 14;
+    const wd = P.wiekDziecka;
+    const limit = s.typAdopcji === "zastepcza" ? (s.odroczenie ? wd.zastepczaOdroczenie : wd.zastepcza) : wd.przysposobienie;
     if (Number(s.wiek) > limit) {
       return {
         blad: `Dla tego wariantu prawo do urlopu na warunkach urlopu macierzyńskiego przysługuje do ${limit}. roku życia dziecka. Przy podanym wieku zasiłek nie przysługuje.`,
@@ -78,8 +94,14 @@ export function oblicz(s) {
             NIEPRZENOSZALNE_ROD_TYG,
             pula - NIEPRZENOSZALNE_ROD_TYG,
           )
-        : pula;
+        : // Jedno z rodziców: 9 tygodni jest zarezerwowane dla drugiego rodzica i przepada,
+          // jeśli go nie wykorzysta (np. 41 − 9 = 32 tygodnie, 43 − 9 = 34).
+          pula - NIEPRZENOSZALNE_ROD_TYG;
   const rodO = pula === 0 ? 0 : oboje ? pula - rodM : 0;
+  if (!oboje && pula > 0)
+    ostrzezenia.push(
+      `Gdy z urlopu rodzicielskiego korzysta tylko jedno z rodziców, przysługuje ${pula - NIEPRZENOSZALNE_ROD_TYG} tygodni — ${NIEPRZENOSZALNE_ROD_TYG} tygodni jest zarezerwowanych dla drugiego rodzica. Pełne ${pula} tygodni dostaniesz tylko w szczególnych sytuacjach (np. drugi rodzic nie żyje albo nie ma władzy rodzicielskiej).`,
+    );
 
   const pM = clamp(Number(s.pracaM) || 0, 0, 50) / 100;
   const pO = clamp(Number(s.pracaO) || 0, 0, 50) / 100;
@@ -87,13 +109,13 @@ export function oblicz(s) {
   const bO = Number(s.podstawaO) || 0;
 
   // --- stawka 81,5% ---
-  let rodzicielskiPct = 0.7;
-  let macierzynskiPct = 1;
+  let rodzicielskiPct = P.stawki.rodzicielski / 100;
+  let macierzynskiPct = P.stawki.macierzynski / 100;
   let uzywa815 = false;
   if (s.w815) {
     if (!adop && !oboje && pM === 0 && pula > 0) {
       uzywa815 = true;
-      rodzicielskiPct = macierzynskiPct = 0.815;
+      rodzicielskiPct = macierzynskiPct = P.stawki.wariant815 / 100;
     } else {
       ostrzezenia.push(
         "Stawka 81,5% wymaga, by jedno z rodziców (matka) wzięło cały urlop macierzyński i rodzicielski bez łączenia z pracą – wybrano więc standardowe 100% i 70%.",
@@ -135,7 +157,7 @@ export function oblicz(s) {
       linia({
         kto: rodzic(kto),
         nazwa: "Uzupełniający urlop macierzyński",
-        tyg: clamp(Number(s.uzupTyg), 1, 15),
+        tyg: clamp(Number(s.uzupTyg), 1, P.uzupelniajacyMaxTyg),
         pct: 1,
         podstawa: kto === "M" ? bM : bO,
       }),
@@ -187,7 +209,7 @@ export function oblicz(s) {
       };
       if (!oboje)
         terminy.push(
-          `Wniosek o zasiłek 81,5%: do ${fmt(plus(d, (x) => x.setDate(x.getDate() + 21)))}`,
+          `Wniosek o zasiłek 81,5%: do ${fmt(plus(d, (x) => x.setDate(x.getDate() + P.termin815Dni)))}`,
         );
       if (oboje && s.ojcowski)
         terminy.push(

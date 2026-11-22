@@ -11,7 +11,8 @@ import Kalkulator from "./ekrany/Kalkulator.jsx";
 import WBudowie from "./ekrany/WBudowie.jsx";
 import Wsparcie from "./ekrany/Wsparcie.jsx";
 import ZlozWniosek, { KreatorFormularza } from "./ekrany/ZlozWniosek.jsx";
-import ZasilekMacierzynski from "./ekrany/ZasilekMacierzynski.jsx";
+import PrzewodnikSwiadczenia from "./ekrany/PrzewodnikSwiadczenia.jsx";
+import Ryzyka from "./ekrany/Ryzyka.jsx";
 import MojeSprawy from "./ekrany/MojeSprawy.jsx";
 import Urzednik from "./ekrany/Urzednik.jsx";
 import Sciezka from "./ekrany/Sciezka.jsx";
@@ -19,6 +20,9 @@ import WniosekZAM from "./wniosek/WniosekZAM.jsx";
 import PasekModulu from "./komponenty/PasekModulu.jsx";
 import PrzewodnikPowitalny from "./komponenty/PrzewodnikPowitalny.jsx";
 import Zusanna from "./komponenty/Zusanna.jsx";
+import { P } from "./parametry.js";
+import { useJezyk } from "./jezyk.js";
+import Admin from "./ekrany/Admin.jsx";
 import { PasekZadluzenia } from "./komponenty/Zadluzenie.jsx";
 import { maZadluzenie } from "./komponenty/Zadluzenie.jsx";
 import "./przewodnik.css";
@@ -34,14 +38,21 @@ function Zalogowany({ children }) {
     setPrzewodnikOtwarty,
     zus,
   } = useSesja();
+  const [jezyk, t] = useJezyk();
   if (!zalogowany) return <Navigate to="/przewodnik" replace />;
   if (!onboardingZakonczony) return <Navigate to="/przewodnik/witaj" replace />;
   return (
     <div className={`modul ${maZadluzenie(zus) ? "zadluzony" : ""}`}>
       <PasekModulu />
       {maZadluzenie(zus) && <PasekZadluzenia zus={zus} />}
+      {jezyk !== "pl" && (
+        <div className="pk pk-jezyk" role="status" lang={jezyk}><div className="wrap">{t("tylko-po-polsku")}</div></div>
+      )}
+      {P.komunikat && (
+        <div className="pk" role="status"><div className="wrap"><b>Komunikat:</b> {P.komunikat}</div></div>
+      )}
       {children}
-      <Zusanna />
+      {P.funkcje.zusanna && <Zusanna />}
       {przewodnikOtwarty && (
         <PrzewodnikPowitalny
           tylkoSlajdy
@@ -76,7 +87,7 @@ export default function PrzewodnikApp() {
         <Route path="swiadczenia" element={chron(<Wsparcie rodzaj="swiadczenia" />)} />
         <Route
           path="swiadczenia/zasilek-macierzynski"
-          element={chron(<ZasilekMacierzynski />)}
+          element={chron(<PrzewodnikSwiadczenia id="zasilek-macierzynski" />)}
         />
         <Route
           path="swiadczenia/zasilek-macierzynski/wniosek"
@@ -85,6 +96,8 @@ export default function PrzewodnikApp() {
         <Route path="kalkulator" element={chron(<Kalkulator />)} />
         <Route path="sprawy" element={chron(<MojeSprawy />)} />
         <Route path="pomoc" element={chron(<Wsparcie rodzaj="pomoc" />)} />
+        <Route path="swiadczenia/:id" element={chron(<PrzewodnikSwiadczenia />)} />
+        <Route path="ryzyka" element={chron(<Ryzyka />)} />
         <Route path="wnioski" element={chron(<ZlozWniosek />)} />
         <Route path="wnioski/:symbol" element={chron(<KreatorFormularza />)} />
         <Route path="wsparcie" element={<Navigate to="/przewodnik/pomoc" replace />} />
@@ -94,6 +107,22 @@ export default function PrzewodnikApp() {
           element={
             <div className="modul">
               <Urzednik />
+            </div>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <div className="modul">
+              <Admin />
+            </div>
+          }
+        />
+        <Route
+          path="pracodawca"
+          element={
+            <div className="modul">
+              <Urzednik rola="pracodawca" />
             </div>
           }
         />

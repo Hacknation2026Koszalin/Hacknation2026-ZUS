@@ -715,6 +715,458 @@ const ZAS59 = zdefiniuj({
   polecany: () => null,
 });
 
+
+// ---------------------------------------------------------------------
+// WNIOSKI O URLOPY — składasz u pracodawcy (zaprojektowane od zera,
+// na podstawie Kodeksu pracy; ZUS nie ma tu wzoru)
+// ---------------------------------------------------------------------
+const tylkoUmowa = (s) => /umowa o pracę/.test(s.zus?.ubezpieczenie?.tytul || "");
+const poleDzieckoUr = (czesc) => ({
+  id: "dataUrDziecka", czesc, typ: "data", wymagane: true,
+  etykieta: "Data urodzenia dziecka",
+  podpowiedz: (w, ctx) => (ctx.zSesji?.dataUr && w.dataUrDziecka === ctx.zSesji.dataUr ? "Wpisaliśmy datę, którą nam podałaś/podałeś." : "Z aktu urodzenia."),
+  waliduj: nieZPrzyszlosci,
+});
+const za21 = (ctx) => new Date(new Date(ctx.dzis).getTime() + 21 * 864e5).toISOString().slice(0, 10);
+const za7 = (ctx) => new Date(new Date(ctx.dzis).getTime() + 7 * 864e5).toISOString().slice(0, 10);
+const pracodawcaPole = () => ({
+  ...polePlatnik(),
+  etykieta: "Twój pracodawca",
+  podpowiedz: "Wniosek o urlop trafi do działu kadr Twojego pracodawcy. Dane wzięliśmy z Twojego konta w ZUS.",
+});
+const doPracodawcy = { adresat: () => "pracodawca", ostatniKrok: "Decyzja pracodawcy", kategoria: "urlopy" };
+
+const URL_M = zdefiniuj({
+  ...doPracodawcy,
+  symbol: "URL-M",
+  tytul: "Wniosek o urlop macierzyński",
+  krotko: "Część urlopu przed porodem albo urlop na warunkach macierzyńskiego.",
+  kiedy: ["Chcesz zacząć urlop macierzyński przed porodem (najwcześniej 6 tygodni przed terminem).", "Albo przyjmujesz dziecko na wychowanie (urlop na warunkach urlopu macierzyńskiego).", "Po porodzie urlop zaczyna się sam — wystarczy odpis aktu urodzenia."],
+  termin: "Przed dniem, od którego chcesz urlop. Po porodzie — dostarcz pracodawcy odpis aktu urodzenia.",
+  dokumenty: ["Zaświadczenie lekarskie o przewidywanej dacie porodu (przy urlopie przed porodem)", "Skrócony odpis aktu urodzenia — po porodzie", "Przy adopcji: dokument z sądu o przyjęciu dziecka"],
+  czas: "3 minuty",
+  czesci: [
+    { id: "dane", tytul: "Twoje dane i pracodawca" },
+    { id: "urlop", tytul: "Urlop" },
+    { id: "zalaczniki", tytul: "Załączniki" },
+    { id: "oswiadczenia", tytul: "Oświadczenie" },
+  ],
+  pola: [
+    poleDane(), poleTelefon(), pracodawcaPole(),
+    {
+      id: "rodzaj", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "O jaki urlop wnioskujesz?",
+      opcje: [
+        { v: "przed", t: "Część urlopu macierzyńskiego przed porodem", opis: "Najwcześniej 6 tygodni przed przewidywaną datą porodu." },
+        { v: "porod", t: "Urlop macierzyński od dnia porodu", opis: "Informujesz pracodawcę o porodzie." },
+        { v: "przyjecie", t: "Urlop na warunkach urlopu macierzyńskiego", opis: "Adopcja albo rodzina zastępcza." },
+      ],
+      podpowiedz: "Urlop macierzyński przy jednym dziecku trwa 20 tygodni. Co najmniej 14 tygodni po porodzie musi wykorzystać mama.",
+    },
+    {
+      id: "termin", czesc: "urlop", typ: "data", wymagane: true,
+      etykieta: "Przewidywana data porodu",
+      zalezyOd: ["rodzaj"], widoczne: (w) => w.rodzaj === "przed",
+      nieDotyczy: "Dotyczy tylko urlopu przed porodem.",
+      podpowiedz: (w, ctx) => (ctx.zSesji?.termin && w.termin === ctx.zSesji.termin ? "Wpisaliśmy termin, który nam podałaś." : "Z zaświadczenia od lekarza lub położnej."),
+    },
+    {
+      id: "dataUr", czesc: "urlop", typ: "data", wymagane: true,
+      etykieta: "Data porodu",
+      zalezyOd: ["rodzaj"], widoczne: (w) => w.rodzaj === "porod",
+      nieDotyczy: "Dotyczy tylko urlopu od dnia porodu.",
+      podpowiedz: "Dzień, w którym urodziło się dziecko.",
+      waliduj: nieZPrzyszlosci,
+    },
+    {
+      id: "dataPrzyjecia", czesc: "urlop", typ: "data", wymagane: true,
+      etykieta: "Data przyjęcia dziecka",
+      zalezyOd: ["rodzaj"], widoczne: (w) => w.rodzaj === "przyjecie",
+      nieDotyczy: "Dotyczy tylko adopcji i rodziny zastępczej.",
+      podpowiedz: "Urlop przysługuje na dziecko do 7 lat (przy odroczonym obowiązku szkolnym do 10 lat).",
+    },
+    {
+      id: "od", czesc: "urlop", typ: "data", wymagane: true,
+      etykieta: "Od kiedy chcesz urlop?",
+      zalezyOd: ["rodzaj"], widoczne: (w) => !!w.rodzaj,
+      podpowiedz: (w) => (w.rodzaj === "przed" && w.termin ? `Najwcześniej od ${fmtData(new Date(new Date(w.termin).getTime() - 42 * 864e5).toISOString().slice(0, 10))} (6 tygodni przed terminem).` : "Pierwszy dzień urlopu."),
+      waliduj: (v, w) => {
+        if (w.rodzaj === "przed" && w.termin && (new Date(w.termin) - new Date(v)) / 864e5 > 42) return "Najwcześniej 6 tygodni przed przewidywaną datą porodu.";
+        if (w.rodzaj === "przed" && w.termin && v > w.termin) return "Urlop przed porodem musi zacząć się przed terminem porodu.";
+        if (w.rodzaj === "porod" && w.dataUr && v !== w.dataUr) return `Urlop po porodzie zaczyna się w dniu porodu: ${fmtData(w.dataUr)}.`;
+        return null;
+      },
+    },
+    {
+      id: "liczbaDzieci", czesc: "urlop", typ: "select", wymagane: true,
+      etykieta: "Ile dzieci przy jednym porodzie / przyjęciu?",
+      zalezyOd: ["rodzaj"], widoczne: (w) => !!w.rodzaj,
+      opcje: [{ v: "1", t: "1 dziecko — 20 tygodni" }, { v: "2", t: "2 dzieci — 31 tygodni" }, { v: "3", t: "3 dzieci — 33 tygodnie" }, { v: "4", t: "4 dzieci — 35 tygodni" }, { v: "5", t: "5 i więcej — 37 tygodni" }],
+      podpowiedz: "Od tego zależy długość urlopu.",
+    },
+    {
+      id: "zalTermin", czesc: "zalaczniki", typ: "plik", wymagane: true,
+      etykieta: "Zaświadczenie lekarskie o przewidywanej dacie porodu",
+      zalezyOd: ["rodzaj"], widoczne: (w) => w.rodzaj === "przed",
+      nieDotyczy: "Potrzebne tylko przy urlopie przed porodem.",
+      podpowiedz: "Zdjęcie albo PDF — w prototypie nic nie jest wysyłane.",
+    },
+    {
+      id: "zalAkt", czesc: "zalaczniki", typ: "plik", wymagane: false,
+      etykieta: "Skrócony odpis aktu urodzenia",
+      zalezyOd: ["rodzaj"], widoczne: (w) => w.rodzaj === "porod",
+      nieDotyczy: "Dołączysz po porodzie.",
+      podpowiedz: "Jeśli jeszcze go nie masz — pomiń i donieś później.",
+    },
+    poleOswiadczenie("oswiadczenia", "Dane we wniosku są zgodne z prawdą. O zmianach (np. wcześniejszym porodzie) poinformuję pracodawcę."),
+  ],
+  start: (s) => ({ ...(s.terminPorodu ? { termin: s.terminPorodu, rodzaj: s.etap === "ciaza" ? "przed" : undefined } : {}), ...(s.dataPorodu ? { dataUr: s.dataPorodu } : {}) }),
+  poWyslaniu: () => "Zasiłek za ten czas: wniosek ZAM",
+  polecany: (s) => (tylkoUmowa(s) && s.etap === "ciaza" && s.ankieta?.rola === "mama" ? "Jeśli chcesz urlop przed porodem" : null),
+});
+
+const URL_R = zdefiniuj({
+  ...doPracodawcy,
+  symbol: "URL-R",
+  tytul: "Wniosek o urlop rodzicielski",
+  krotko: "41 tygodni do podziału (43 przy wieloraczkach), także z pracą na część etatu.",
+  kiedy: ["Po urlopie macierzyńskim chcesz zostać z dzieckiem dłużej.", "Każdemu z rodziców przysługuje 9 tygodni, których nie można przekazać drugiemu."],
+  termin: "Najpóźniej 21 dni przed rozpoczęciem urlopu. Jeśli chcesz go od razu po macierzyńskim w całości (zasiłek 81,5%) — do 21 dni po porodzie.",
+  dokumenty: ["Skrócony odpis aktu urodzenia (jeśli pracodawca go nie ma)", "Wniosek ZAM o zasiłek — osobno, u płatnika zasiłku"],
+  czas: "4 minuty",
+  czesci: [
+    { id: "dane", tytul: "Twoje dane i pracodawca" },
+    { id: "dziecko", tytul: "Dziecko" },
+    { id: "urlop", tytul: "Urlop" },
+    { id: "oswiadczenia", tytul: "Oświadczenie" },
+  ],
+  pola: [
+    poleDane(), poleTelefon(), pracodawcaPole(),
+    { ...polaDziecka("dziecko", { miejsce: false })[0] },
+    poleDzieckoUr("dziecko"),
+    {
+      id: "kiedyUrlop", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "Kiedy chcesz urlop rodzicielski?",
+      opcje: [
+        { v: "odrazu", t: "Bezpośrednio po urlopie macierzyńskim, w całości", opis: "Wtedy możesz mieć zasiłek 81,5% za cały okres." },
+        { v: "pozniej", t: "Później albo w częściach", opis: "Do 6. roku życia dziecka, maks. w 5 częściach." },
+      ],
+      podpowiedz: "Najczęściej wybierasz pierwszą opcję razem z wnioskiem ZAM 81,5%.",
+    },
+    ...poleOkres("urlop", "", { etykieta: "Okres urlopu" }).map((p) =>
+      p.id === "od"
+        ? { ...p, podpowiedz: (w, ctx) => (w.kiedyUrlop === "pozniej" ? `Najwcześniej od ${fmtData(za21(ctx))} — wniosek składasz 21 dni wcześniej.` : "Dzień po końcu urlopu macierzyńskiego."), waliduj: (v, w, ctx) => (w.kiedyUrlop === "pozniej" && v < za21(ctx) ? `Wniosek trzeba złożyć 21 dni przed urlopem — najwcześniej od ${fmtData(za21(ctx))}.` : null) }
+        : { ...p, waliduj: (v, w) => (w.od && v < w.od ? "Data „do” nie może być wcześniejsza niż „od”." : w.od && (new Date(v) - new Date(w.od)) / 864e5 > 43 * 7 ? "Urlop rodzicielski to najwyżej 41 tygodni (43 przy wieloraczkach)." : null) },
+    ),
+    {
+      id: "praca", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "Czy chcesz łączyć urlop z pracą?",
+      opcje: [{ v: "nie", t: "Nie" }, { v: "tak", t: "Tak, do połowy etatu" }],
+      podpowiedz: "Możesz pracować do połowy etatu — urlop wydłuży się proporcjonalnie, a zasiłek będzie niższy. Przy łączeniu z pracą wniosek składasz 21 dni wcześniej.",
+    },
+    {
+      id: "wymiar", czesc: "urlop", typ: "select", wymagane: true,
+      etykieta: "W jakim wymiarze chcesz pracować?",
+      zalezyOd: ["praca"], widoczne: (w) => w.praca === "tak", nieDotyczy: "Nie łączysz urlopu z pracą.",
+      opcje: [{ v: "1/8", t: "1/8 etatu" }, { v: "1/4", t: "1/4 etatu" }, { v: "3/8", t: "3/8 etatu" }, { v: "1/2", t: "1/2 etatu" }],
+      podpowiedz: "Maksymalnie pół etatu. Pracodawca może odmówić tylko z ważnych powodów organizacyjnych.",
+    },
+    {
+      id: "drugiRodzic", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "Czy drugi rodzic też weźmie część urlopu rodzicielskiego?",
+      opcje: [{ v: "tak", t: "Tak" }, { v: "nie", t: "Nie" }, { v: "nie_wiem", t: "Jeszcze nie wiemy" }],
+      podpowiedz: "Każdy rodzic ma 9 tygodni tylko dla siebie — jeśli drugi rodzic ich nie wykorzysta, przepadną. Jedno z rodziców może więc wziąć najwyżej 32 tygodnie (34 przy wieloraczkach).",
+    },
+    poleOswiadczenie("oswiadczenia", "Dane są zgodne z prawdą. Poinformuję pracodawcę, jeśli zmieni się okres urlopu albo drugi rodzic weźmie jego część."),
+  ],
+  start: (s) => (s.dataPorodu ? { dataUrDziecka: s.dataPorodu } : {}),
+  poWyslaniu: () => "Pamiętaj o wniosku o zasiłek za ten czas",
+  polecany: (s) => (tylkoUmowa(s) && ["ciaza", "dziecko"].includes(s.etap) ? "Złóż razem z ZAM (21 dni)" : null),
+});
+
+const URL_O = zdefiniuj({
+  ...doPracodawcy,
+  symbol: "URL-O",
+  tytul: "Wniosek o urlop ojcowski",
+  krotko: "2 tygodnie dla taty do 1. urodzin dziecka, zasiłek 100%.",
+  kiedy: ["Jesteś tatą dziecka, które nie skończyło 12 miesięcy.", "Możesz wziąć 2 tygodnie naraz albo dwa razy po tygodniu."],
+  termin: "Najpóźniej 7 dni przed rozpoczęciem urlopu.",
+  dokumenty: ["Skrócony odpis aktu urodzenia dziecka", "Wniosek o zasiłek za ten czas (ZAM) — u płatnika zasiłku"],
+  czas: "2 minuty",
+  czesci: [
+    { id: "dane", tytul: "Twoje dane i pracodawca" },
+    { id: "dziecko", tytul: "Dziecko" },
+    { id: "urlop", tytul: "Urlop" },
+    { id: "oswiadczenia", tytul: "Oświadczenie" },
+  ],
+  pola: [
+    poleDane(), poleTelefon(), pracodawcaPole(),
+    { ...polaDziecka("dziecko", { miejsce: false })[0] },
+    poleDzieckoUr("dziecko"),
+    {
+      id: "dlugosc", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "Ile urlopu chcesz teraz wziąć?",
+      opcje: [{ v: "2", t: "2 tygodnie naraz" }, { v: "1", t: "1 tydzień (drugi wezmę później)" }],
+      podpowiedz: "Urlop ojcowski to 14 dni. Możesz go podzielić na 2 części po tygodniu.",
+    },
+    {
+      id: "od", czesc: "urlop", typ: "data", wymagane: true,
+      etykieta: "Od kiedy chcesz urlop?",
+      zalezyOd: ["dlugosc"], widoczne: (w) => !!w.dlugosc,
+      podpowiedz: (w, ctx) => `Najwcześniej od ${fmtData(za7(ctx))} (wniosek 7 dni wcześniej)` + (w.dataUrDziecka ? `, najpóźniej tak, by skończyć przed ${fmtData(new Date(new Date(w.dataUrDziecka).setFullYear(new Date(w.dataUrDziecka).getFullYear() + 1)).toISOString().slice(0, 10))}.` : "."),
+      waliduj: (v, w, ctx) => {
+        if (v < za7(ctx)) return `Wniosek trzeba złożyć 7 dni wcześniej — najwcześniej od ${fmtData(za7(ctx))}.`;
+        if (w.dataUrDziecka) {
+          const roczek = new Date(w.dataUrDziecka); roczek.setFullYear(roczek.getFullYear() + 1);
+          const koniec = new Date(new Date(v).getTime() + (Number(w.dlugosc) * 7 - 1) * 864e5);
+          if (koniec >= roczek) return "Urlop musi się skończyć, zanim dziecko skończy 12 miesięcy.";
+        }
+        return null;
+      },
+    },
+    poleOswiadczenie("oswiadczenia", "Jestem ojcem dziecka. Dane są zgodne z prawdą."),
+  ],
+  start: (s) => (s.dataPorodu ? { dataUrDziecka: s.dataPorodu } : {}),
+  poWyslaniu: () => "Zasiłek ojcowski: 100% podstawy — złóż też ZAM",
+  polecany: (s) => (tylkoUmowa(s) && s.ankieta?.rola === "tata" && ["ciaza", "dziecko"].includes(s.etap) ? "Masz 2 tygodnie tylko dla siebie" : null),
+});
+
+const URL_W = zdefiniuj({
+  ...doPracodawcy,
+  symbol: "URL-W",
+  tytul: "Wniosek o urlop wychowawczy",
+  krotko: "Do 36 miesięcy opieki nad dzieckiem — bezpłatny, ze składkami z budżetu.",
+  kiedy: ["Pracujesz co najmniej 6 miesięcy (liczy się cały staż pracy).", "Dziecko nie skończyło jeszcze 6 lat (licząc do końca roku kalendarzowego)."],
+  termin: "Najpóźniej 21 dni przed rozpoczęciem urlopu.",
+  dokumenty: ["Skrócony odpis aktu urodzenia", "Oświadczenie drugiego rodzica o korzystaniu (lub nie) z urlopu wychowawczego"],
+  czas: "4 minuty",
+  czesci: [
+    { id: "dane", tytul: "Twoje dane i pracodawca" },
+    { id: "dziecko", tytul: "Dziecko" },
+    { id: "urlop", tytul: "Urlop" },
+    { id: "oswiadczenia", tytul: "Oświadczenie" },
+  ],
+  pola: [
+    poleDane(), poleTelefon(), pracodawcaPole(),
+    { ...polaDziecka("dziecko", { miejsce: false })[0] },
+    poleDzieckoUr("dziecko"),
+    {
+      id: "staz", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "Czy masz co najmniej 6 miesięcy stażu pracy?",
+      opcje: [{ v: "tak", t: "Tak" }, { v: "nie", t: "Nie" }],
+      podpowiedz: "Liczy się cały dotychczasowy staż, nie tylko u obecnego pracodawcy.",
+      waliduj: (v) => (v === "nie" ? "Urlop wychowawczy przysługuje po 6 miesiącach stażu pracy." : null),
+    },
+    ...poleOkres("urlop", "", { etykieta: "Okres urlopu" }).map((p) =>
+      p.id === "od"
+        ? { ...p, podpowiedz: (w, ctx) => `Najwcześniej od ${fmtData(za21(ctx))} — wniosek składasz 21 dni wcześniej.`, waliduj: (v, w, ctx) => (v < za21(ctx) ? `Wniosek trzeba złożyć 21 dni przed urlopem — najwcześniej od ${fmtData(za21(ctx))}.` : null) }
+        : { ...p, waliduj: (v, w) => (w.od && v < w.od ? "Data „do” nie może być wcześniejsza niż „od”." : w.od && (new Date(v) - new Date(w.od)) / 864e5 > 36 * 31 ? "Urlop wychowawczy to najwyżej 36 miesięcy." : w.dataUrDziecka && +v.slice(0, 4) > +w.dataUrDziecka.slice(0, 4) + 6 ? "Urlop przysługuje najdłużej do końca roku, w którym dziecko kończy 6 lat." : null) },
+    ),
+    {
+      id: "czesc", czesc: "urlop", typ: "select", wymagane: true,
+      etykieta: "Która to część urlopu?",
+      opcje: [1, 2, 3, 4, 5].map((n) => ({ v: String(n), t: `${n}. część` })),
+      podpowiedz: "Urlop wychowawczy możesz wykorzystać w maksymalnie 5 częściach.",
+    },
+    {
+      id: "drugiRodzic", czesc: "urlop", typ: "radio", wymagane: true,
+      etykieta: "Czy drugi rodzic będzie w tym samym czasie na urlopie wychowawczym?",
+      opcje: [{ v: "nie", t: "Nie" }, { v: "tak", t: "Tak" }],
+      podpowiedz: "Rodzice mogą być jednocześnie na urlopie wychowawczym najwyżej 4 miesiące. Każdy z rodziców ma 1 miesiąc tylko dla siebie.",
+    },
+    poleOswiadczenie("oswiadczenia", "Dane są zgodne z prawdą. W czasie urlopu wychowawczego nie dostaję wynagrodzenia — składki emerytalne i rentowe opłaca za mnie budżet państwa."),
+  ],
+  start: (s) => (s.dataPorodu ? { dataUrDziecka: s.dataPorodu } : {}),
+  poWyslaniu: () => "Sprawdź też dodatki z gminy na czas urlopu",
+  polecany: () => null,
+});
+
+
+// ---------------------------------------------------------------------
+// USC — odpis aktu urodzenia (symulacja usługi z gov.pl / rejestr stanu cywilnego)
+// ---------------------------------------------------------------------
+const CEL_ZUS = ["zus", "zasilek", "800"];
+const USC_ODPIS = zdefiniuj({
+  symbol: "USC-1",
+  tytul: "Wniosek o odpis aktu urodzenia dziecka",
+  krotko: "Odpis skrócony, zupełny albo wielojęzyczny — z rejestru stanu cywilnego.",
+  kiedy: ["Potrzebujesz odpisu aktu urodzenia, np. dla pracodawcy, do paszportu albo za granicę.", "Pierwszy odpis skrócony dostajesz bezpłatnie z urzędu po zarejestrowaniu urodzenia."],
+  termin: "Bez terminu. Urząd wydaje odpis od ręki albo w kilka dni.",
+  dokumenty: ["Nic nie dołączasz, jeśli odpis dotyczy Ciebie albo Twojego dziecka", "Dowód opłaty skarbowej — jeśli jest wymagana"],
+  czas: "3 minuty",
+  kategoria: "usc",
+  adresat: () => "usc",
+  ostatniKrok: "Odpis gotowy",
+  czesci: [
+    { id: "dane", tytul: "Twoje dane" },
+    { id: "akt", tytul: "Czyj akt" },
+    { id: "odpis", tytul: "Rodzaj odpisu" },
+    { id: "odbior", tytul: "Odbiór i opłata" },
+    { id: "oswiadczenia", tytul: "Oświadczenie" },
+  ],
+  pola: [
+    poleDane(), poleTelefon(),
+    {
+      id: "czyj", czesc: "akt", typ: "radio", wymagane: true,
+      etykieta: "Czyj akt urodzenia?",
+      opcje: [
+        { v: "dziecko", t: "Mojego dziecka" },
+        { v: "moj", t: "Mój" },
+      ],
+      podpowiedz: "Rodzic może dostać odpis aktu dziecka bez dodatkowych dokumentów.",
+    },
+    { ...polaDziecka("akt", { miejsce: true })[0], zalezyOd: ["czyj"], widoczne: (w) => w.czyj === "dziecko", nieDotyczy: "Odpis dotyczy Ciebie." },
+    { ...polaDziecka("akt")[1], zalezyOd: ["czyj"], widoczne: (w) => w.czyj === "dziecko", nieDotyczy: "Odpis dotyczy Ciebie." },
+    {
+      id: "miejsceUrDziecka", czesc: "akt", typ: "tekst", wymagane: true,
+      etykieta: "Miejsce urodzenia (miejscowość)",
+      zalezyOd: ["czyj"], widoczne: (w) => !!w.czyj,
+      podpowiedz: "Od miejsca urodzenia zależy, który urząd stanu cywilnego sporządził akt. Wniosek możesz złożyć w każdym USC.",
+      waliduj: (v) => (v.trim().length < 2 ? "Wpisz miejscowość." : null),
+    },
+    {
+      id: "rodzajOdpisu", czesc: "odpis", typ: "radio", wymagane: true,
+      etykieta: "Jakiego odpisu potrzebujesz?",
+      opcje: [
+        { v: "skrocony", t: "Skrócony", opis: "Aktualne dane z aktu — wystarcza w większości spraw (pracodawca, ZUS, 800+). Opłata 22 zł." },
+        { v: "zupelny", t: "Zupełny", opis: "Pełna treść aktu z późniejszymi zmianami, np. zmianą nazwiska. Opłata 33 zł." },
+        { v: "wielojezyczny", t: "Wielojęzyczny skrócony", opis: "Do użycia za granicą (wybrane kraje). Tylko papierowy." },
+      ],
+      podpowiedz: "Nie wiesz, który wybrać? Do spraw w Polsce zwykle wystarczy skrócony.",
+    },
+    {
+      id: "egzemplarze", czesc: "odpis", typ: "liczba", wymagane: true, min: 1, max: 5,
+      etykieta: "Ile egzemplarzy?",
+      podpowiedz: "Każdy egzemplarz to osobna opłata (gdy jest wymagana).",
+      waliduj: (v) => (+v >= 1 && +v <= 5 ? null : "Wpisz liczbę od 1 do 5."),
+    },
+    {
+      id: "cel", czesc: "odbior", typ: "select", wymagane: true,
+      etykieta: "Do czego potrzebujesz odpisu?",
+      opcje: [
+        { v: "zus", t: "Do sprawy w ZUS (np. zasiłek macierzyński)" },
+        { v: "pracodawca", t: "Dla pracodawcy (urlop, kadry)" },
+        { v: "dokument", t: "Do dowodu osobistego lub paszportu" },
+        { v: "zagranica", t: "Do sprawy za granicą" },
+        { v: "inny", t: "Inny cel" },
+      ],
+      podpowiedz: (w) =>
+        CEL_ZUS.includes(w.cel) || w.cel === "dokument" || w.cel === "pracodawca"
+          ? "W tej sprawie odpis jest zwolniony z opłaty skarbowej."
+          : "Od celu zależy, czy zapłacisz opłatę skarbową. Do spraw w ZUS, pracy i dokumentów tożsamości odpis jest bezpłatny.",
+    },
+    {
+      id: "forma", czesc: "odbior", typ: "radio", wymagane: true,
+      etykieta: "W jakiej formie chcesz dostać odpis?",
+      opcje: [
+        { v: "epuap", t: "Elektronicznie — na skrzynkę ePUAP", opis: "Plik podpisany kwalifikowanym podpisem. Ważny tylko w wersji elektronicznej.", wylaczona: (w) => (w.rodzajOdpisu === "wielojezyczny" ? "Wielojęzyczny odpis wydawany jest tylko na papierze." : null) },
+        { v: "poczta", t: "Pocztą na adres zamieszkania" },
+        { v: "osobiscie", t: "Odbiór osobisty w urzędzie stanu cywilnego" },
+      ],
+      podpowiedz: "Elektroniczny odpis wyślesz od razu dalej, np. do ZUS przez eZUS.",
+    },
+    {
+      id: "oplata", czesc: "odbior", typ: "potwierdz", wymagane: true,
+      etykieta: "Opłata skarbowa",
+      zrodlo: "wyliczenie na podstawie wniosku",
+      wiersze: (ctx, w = {}) => {
+        const zw = ["zus", "pracodawca", "dokument"].includes(w.cel);
+        const cena = w.rodzajOdpisu === "zupelny" ? 33 : w.rodzajOdpisu === "wielojezyczny" ? 17 : 22;
+        const n = Math.max(1, +w.egzemplarze || 1);
+        return [
+          ["Odpis", `${{ skrocony: "skrócony", zupelny: "zupełny", wielojezyczny: "wielojęzyczny" }[w.rodzajOdpisu] || "—"} × ${n}`],
+          ["Do zapłaty", zw ? "0 zł — zwolnione z opłaty" : `${cena * n} zł`],
+        ];
+      },
+      podsumowanie: "Zapoznano się z opłatą",
+      komunikatPusty: "Sprawdź wysokość opłaty i kliknij „Dane są poprawne”.",
+      podpowiedz: (w) => {
+        const zw = ["zus", "pracodawca", "dokument"].includes(w.cel);
+        const cena = w.rodzajOdpisu === "zupelny" ? 33 : w.rodzajOdpisu === "wielojezyczny" ? 17 : 22;
+        const n = Math.max(1, +w.egzemplarze || 1);
+        return zw ? "Do zapłaty: 0 zł — ten cel jest zwolniony z opłaty skarbowej. Kliknij „Dane są poprawne”." : `Do zapłaty: ${cena * n} zł (${n} × ${cena} zł). W prototypie płatność jest symulowana. Kliknij „Dane są poprawne”.`;
+      },
+    },
+    poleOswiadczenie("oswiadczenia", "Dane we wniosku są zgodne z prawdą. Odpis dotyczy mnie albo mojego dziecka."),
+  ],
+  start: (s) => ({ czyj: "dziecko", egzemplarze: "1", rodzajOdpisu: "skrocony", ...(s.dataPorodu ? { dataUrDziecka: s.dataPorodu } : {}) }),
+  poWyslaniu: (ctx) => "Urząd stanu cywilnego przygotuje odpis — dostaniesz powiadomienie",
+  polecany: (s) => (s.etap === "dziecko" ? "Potrzebny do zasiłku i urlopów" : null),
+});
+
+
+// ---------------------------------------------------------------------
+// 800+ — świadczenie wychowawcze (wniosek składany elektronicznie do ZUS)
+// ---------------------------------------------------------------------
+const SW800 = zdefiniuj({
+  symbol: "SW-800",
+  tytul: "Wniosek o świadczenie wychowawcze 800+",
+  krotko: "800 zł miesięcznie na każde dziecko do 18 lat — bez kryterium dochodowego.",
+  kiedy: ["Masz dziecko poniżej 18 lat, które mieszka z Tobą.", "Złóż wniosek do 3 miesięcy od urodzenia — dostaniesz pieniądze od miesiąca narodzin."],
+  termin: "Do 3 miesięcy od urodzenia dziecka — wtedy z wyrównaniem od miesiąca narodzin.",
+  dokumenty: ["Zwykle żadnych — ZUS sprawdzi dane w rejestrach", "Gdy ktoś z rodziny pracuje lub mieszka za granicą — informacja o tym (koordynacja)"],
+  czas: "4 minuty",
+  kategoria: "rodzina",
+  adresat: () => "zus",
+  ostatniKrok: "Informacja o przyznaniu",
+  czesci: [
+    { id: "dane", tytul: "Twoje dane" },
+    { id: "dziecko", tytul: "Dziecko" },
+    { id: "rodzina", tytul: "Rodzina" },
+    { id: "wyplata", tytul: "Wypłata" },
+    { id: "oswiadczenia", tytul: "Oświadczenia" },
+  ],
+  pola: [
+    poleDane(), poleTelefon(),
+    {
+      id: "emailKontakt", czesc: "dane", typ: "tekst", wymagane: true, inputMode: "email",
+      etykieta: "Adres e-mail",
+      placeholder: "np. anna@example.com",
+      podpowiedz: "Na ten adres ZUS wyśle informację o przyznaniu 800+.",
+      waliduj: (v) => (/^\S+@\S+\.\S+$/.test(v.trim()) ? null : "Wpisz poprawny adres e-mail."),
+    },
+    { ...polaDziecka("dziecko", { miejsce: false })[0] },
+    { ...polaDziecka("dziecko")[1] },
+    {
+      id: "peselDziecka", czesc: "dziecko", typ: "pesel", wymagane: true,
+      etykieta: "PESEL dziecka",
+      podpowiedz: "PESEL dziecko dostaje po zarejestrowaniu urodzenia w urzędzie stanu cywilnego.",
+      waliduj: (v) => (/^\d{11}$/.test(v) ? null : "PESEL ma dokładnie 11 cyfr."),
+    },
+    {
+      id: "mieszka", czesc: "dziecko", typ: "radio", wymagane: true,
+      etykieta: "Czy dziecko mieszka z Tobą i jest na Twoim utrzymaniu?",
+      opcje: [{ v: "tak", t: "Tak" }, { v: "nie", t: "Nie" }],
+      podpowiedz: "800+ dostaje osoba, z którą dziecko mieszka i która je utrzymuje.",
+      waliduj: (v) => (v === "nie" ? "800+ przysługuje osobie, z którą dziecko mieszka. Wniosek powinna złożyć ta osoba." : null),
+    },
+    {
+      id: "drugiRodzic", czesc: "rodzina", typ: "tekst", wymagane: false,
+      etykieta: "Imię i nazwisko drugiego rodzica",
+      podpowiedz: "Nieobowiązkowe, jeśli drugi rodzic jest nieznany albo nie żyje.",
+    },
+    {
+      id: "zagranica", czesc: "rodzina", typ: "radio", wymagane: true,
+      etykieta: "Czy ktoś z Twojej rodziny pracuje, mieszka lub dostaje świadczenia za granicą?",
+      opcje: [{ v: "nie", t: "Nie" }, { v: "tak", t: "Tak" }],
+      podpowiedz: "Chodzi o kraje UE, EOG, Szwajcarię i Wielką Brytanię. Wtedy ZUS ustala, które państwo wypłaca świadczenie (koordynacja).",
+    },
+    {
+      id: "kraj", czesc: "rodzina", typ: "tekst", wymagane: true,
+      etykieta: "Kto i w jakim kraju?",
+      placeholder: "np. mąż pracuje w Niemczech",
+      zalezyOd: ["zagranica"], widoczne: (w) => w.zagranica === "tak", nieDotyczy: "Nikt z rodziny nie jest za granicą.",
+      podpowiedz: "Krótko: kto, w jakim kraju, czy pracuje albo pobiera tam świadczenia.",
+      waliduj: min3,
+    },
+    { ...poleIban("wyplata"), zalezyOd: [], widoczne: undefined, podpowiedz: "800+ wypłacamy tylko na konto w banku. Konto musi należeć do Ciebie." },
+    poleOswiadczenie("oswiadczenia", "Oświadczam, że dane są zgodne z prawdą. Poinformuję ZUS o każdej zmianie, która może wpłynąć na prawo do świadczenia (np. dziecko zamieszka z drugim rodzicem albo ktoś z rodziny wyjedzie do pracy za granicę)."),
+  ],
+  start: (s) => (s.dataPorodu ? { dataUrDziecka: s.dataPorodu } : {}),
+  poWyslaniu: () => "Informację o przyznaniu dostaniesz na eZUS i e-mailem",
+  polecany: (s) => (s.etap === "dziecko" ? "Masz 3 miesiące od urodzenia" : null),
+});
+
 // ---------------------------------------------------------------------
 // Dokumenty, które wypełnia ktoś inny — pokazujemy, jak o nie poprosić
 // ---------------------------------------------------------------------
@@ -760,6 +1212,9 @@ export const DOKUMENTY_INNYCH = [
 // Rejestr
 // ---------------------------------------------------------------------
 export const KATEGORIE = [
+  { id: "rodzina", nazwa: "Świadczenia na dziecko", ikona: "serce" },
+  { id: "usc", nazwa: "Akt urodzenia — urząd stanu cywilnego", ikona: "dokument" },
+  { id: "urlopy", nazwa: "Urlopy — składasz u pracodawcy", ikona: "teczka" },
   { id: "macierzynski", nazwa: "Zasiłek macierzyński", ikona: "dokument" },
   { id: "opiekunczy", nazwa: "Opieka nad dzieckiem", ikona: "serce" },
   { id: "podatek", nazwa: "Podatek od zasiłku", ikona: "kalkulator" },
@@ -768,14 +1223,42 @@ export const KATEGORIE = [
 
 const zamZPoleceniem = {
   ...ZAM,
+  uwagaStart: undefined,
   kiedy: ["Urodzisz albo urodziłaś dziecko, adoptujesz je lub przyjmujesz do rodziny zastępczej.", "Masz ubezpieczenie chorobowe."],
   polecany: (s) => (["ciaza", "dziecko", "adopcja"].includes(s.etap) ? "Najważniejszy wniosek na Twoim etapie" : null),
 };
 
-export const FORMULARZE = [zamZPoleceniem, ZAS26, ZAS33, ZAS23, ZAS55, ZAS39, ZPM, ZPO, ZPW, ZZD, ZAS58, ZAS59];
+export const FORMULARZE = [SW800, USC_ODPIS, URL_M, URL_R, URL_O, URL_W, zamZPoleceniem, ZAS26, ZAS33, ZAS23, ZAS55, ZAS39, ZPM, ZPO, ZPW, ZZD, ZAS58, ZAS59];
+
+// GDZIE ZŁOŻYĆ: wnioski o zasiłek trafiają do płatnika zasiłku — pracodawcy, gdy zgłasza
+// ponad 20 osób do ubezpieczenia chorobowego; w innym wypadku do ZUS.
+const doPlatnikaZasilku = (ctx) => (ctx.zus?.ubezpieczenie?.platnikPowyzej20 ? "pracodawca" : "zus");
+const DO_PLATNIKA = ["ZAM", "ZAS-26", "ZAS-33", "ZAS-23", "ZAS-39"];
+const INFO = {
+  ZAM: {
+    termin: "Przed porodem — najwcześniej 6 tygodni przed terminem. Jeśli chcesz 81,5% za cały rok: najpóźniej 21 dni po porodzie.",
+    dokumenty: ["Skrócony odpis aktu urodzenia (albo dane z rejestru)", "Zaświadczenie lekarskie o terminie porodu — gdy składasz przed porodem", "Gdy wypłaca ZUS: zaświadczenie płatnika Z-3 (wysyła pracodawca)"],
+  },
+  "ZAS-26": { termin: "Razem z wnioskiem ZAM.", dokumenty: ["Postanowienie sądu albo zaświadczenie o wszczęciu postępowania o przysposobienie"] },
+  "ZAS-33": { termin: "Razem z wnioskiem ZAM, gdy przejmujesz zasiłek.", dokumenty: ["Akt zgonu mamy albo dokument potwierdzający porzucenie dziecka"] },
+  "ZAS-23": { termin: "Przed dniem, od którego chcesz wstrzymać zasiłek.", dokumenty: ["Przy pobycie w szpitalu: zaświadczenie ze szpitala (np. ZAS-40)"] },
+  "ZAS-39": { termin: "Razem z e-ZLA na opiekę nad dzieckiem.", dokumenty: ["Zaświadczenie lekarskie e-ZLA o opiece", "Zaświadczenie ze szpitala o pobycie mamy (gdy dotyczy)"] },
+  "ZAS-55": { termin: "Po rozwiązaniu umowy — im wcześniej, tym szybciej dostaniesz pieniądze.", dokumenty: ["Świadectwo pracy", "Zaświadczenie lekarskie o ciąży"] },
+  ZPM: { termin: "W dowolnym momencie — ulga działa od kolejnej wypłaty." },
+  ZPO: { termin: "W dowolnym momencie — ulga działa od kolejnej wypłaty." },
+  ZPW: { termin: "Gdy potrzebujesz zaświadczenia." },
+  ZZD: { termin: "Jak najszybciej po zmianie danych." },
+  "ZAS-58": { termin: "Gdy masz wątpliwości co do zasiłku. Na decyzję możesz złożyć odwołanie do sądu w ciągu miesiąca." },
+  "ZAS-59": { termin: "W ciągu 12 miesięcy od śmierci osoby uprawnionej." },
+};
+FORMULARZE.forEach((f) => {
+  if (!f.adresat) f.adresat = DO_PLATNIKA.includes(f.symbol) ? doPlatnikaZasilku : () => "zus";
+  Object.assign(f, { ...INFO[f.symbol], ...Object.fromEntries(Object.entries(f).filter(([k]) => ["termin", "dokumenty"].includes(k))) });
+});
 
 // Krótkie nazwy do menu
 const MENU = {
+  "SW-800": "800+ na dziecko", "USC-1": "Odpis aktu urodzenia", "URL-M": "Urlop macierzyński", "URL-R": "Urlop rodzicielski", "URL-O": "Urlop ojcowski", "URL-W": "Urlop wychowawczy",
   ZAM: "Zasiłek macierzyński", "ZAS-26": "Przyjęcie dziecka na wychowanie", "ZAS-33": "Porzucenie lub śmierć mamy",
   "ZAS-23": "Skrócenie lub wstrzymanie zasiłku", "ZAS-55": "Utrata pracy w ciąży", "ZAS-39": "Opieka nad noworodkiem",
   ZPM: "Ulga dla młodych (PIT)", ZPO: "Inne ulgi podatkowe", ZPW: "Zaświadczenie z ZUS", ZZD: "Zmiana adresu lub konta",

@@ -335,3 +335,29 @@ a.sw-kafel:hover { border-color: var(--w-p); }
 .wn-kiedy b { display: block; margin-bottom: 4px; }
 .wn-kiedy ul { margin: 0; padding-left: 20px; }
 .wn-kiedy li + li { margin-top: 4px; }
+
+/* v8 — nieruchoma scena „prowadź mnie” (jedno pole, bez przewijania strony) */
+.wn-scena { position: fixed; inset: 0; z-index: 65; background: rgba(11, 31, 51, .55); display: grid; place-items: center; padding: 16px; overflow: hidden; animation: wn-zanik .15s ease-out; }
+.wn-scena-in { width: min(760px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: #f5f7fa; border-radius: 24px; padding: 20px 22px 24px; box-shadow: 0 30px 80px rgba(11, 31, 51, .4); }
+.wn-scena-glowa { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.wn-scena .wn-pasek { margin: 12px 0 14px; }
+.wn-scena-czesc { margin: 0 0 8px; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--w-blue, #025ac4); }
+.wn-scena-uwaga { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: #fff4e5; color: #5f3700; font-size: 15px; }
+.wn-scena-pole.wn-papier { margin: 0; padding: 18px 18px 6px; box-shadow: none; border-radius: 16px; }
+.wn-scena-pole .wn-pole.wn-aktywne { margin: 0; box-shadow: none; outline: 0; }
+.wn-po-przew { margin-bottom: 16px; }
+@media (max-width: 600px) { .wn-scena { padding: 0; } .wn-scena-in { border-radius: 0; max-height: 100vh; height: 100vh; } }
+
+/* v8 — gdzie trafi formularz */
+.wn-gdzie { border-radius: 14px; padding: 14px 16px; margin: 0 0 16px; background: #eef4fc; border: 1px solid #cfe0f5; }
+.wn-gdzie.pracodawca { background: #f6f3ff; border-color: #ddd3f7; }
+.wn-gdzie-glowa { display: flex; gap: 12px; align-items: center; }
+.wn-gdzie-glowa small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #536271; }
+.wn-gdzie-glowa b { font-size: 17px; }
+.wn-gdzie p { margin: 8px 0 0; font-size: 15px; }
+.wn-gdzie-dl { margin: 10px 0 0; display: grid; gap: 8px; }
+.wn-gdzie-dl div { display: grid; grid-template-columns: 130px 1fr; gap: 10px; padding-top: 8px; border-top: 1px solid rgba(0, 0, 0, .06); }
+.wn-gdzie-dl dt { display: flex; gap: 6px; align-items: center; font-weight: 700; font-size: 14px; }
+.wn-gdzie-dl dd { margin: 0; font-size: 15px; }
+.wn-gdzie-dl ul { margin: 0; padding-left: 18px; }
+@media (max-width: 560px) { .wn-gdzie-dl div { grid-template-columns: 1fr; gap: 2px; } }

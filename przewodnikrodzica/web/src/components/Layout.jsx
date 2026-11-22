@@ -1,11 +1,10 @@
 import { Outlet, useLocation } from "react-router-dom";
-import TopBar from "./TopBar.jsx";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
 import StopkaKonta from "./StopkaKonta.jsx";
 
 // Po zalogowaniu do przewodnika chowamy menu serwisu — zostaje tylko menu rodzica.
-const STREFA_KONTA = /^\/przewodnik\/(pulpit|sciezka|swiadczenia|kalkulator|sprawy|wsparcie|pomoc|wnioski|urzednik|witaj)/;
+const STREFA_KONTA = /^\/przewodnik\/(pulpit|sciezka|swiadczenia|kalkulator|sprawy|wsparcie|pomoc|wnioski|ryzyka|urzednik|pracodawca|admin|witaj)/;
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -14,7 +13,6 @@ export default function Layout() {
     <>
       <a className="skip" href="#tresc">Przejdź do treści</a>
       {/* W strefie konta: bez górnego paska i menu serwisu; w nagłówku ikony konta, dostępność i języki */}
-      {!wKoncie && <TopBar />}
       <Header bezMenu={wKoncie} />
       <main id="tresc">
         <Outlet />

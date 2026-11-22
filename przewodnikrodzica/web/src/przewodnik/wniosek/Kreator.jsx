@@ -22,7 +22,6 @@ const wczytajSzkic = (def) => {
     return null;
   }
 };
-const ruchOgraniczony = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 // ---------- Dymek przewodnika ----------
 function Dymek({ pole, w, ctx, nr, ile, err, pokazBlad, przypomnij, pierwszy, onDalej, onPomin, onWstecz, onWylacz }) {
@@ -100,6 +99,7 @@ export default function Kreator({ def }) {
   const [oswiadczenie, setOswiadczenie] = useState(false);
   const [wysylanie, setWysylanie] = useState(false);
   const [wyslany, setWyslany] = useState(null);
+  const [poPrzewodniku, setPoPrzewodniku] = useState(false);
   const gora = useRef(null);
 
   // Zapis szkicu (żeby odświeżenie strony nie kasowało wpisanych danych)
@@ -144,7 +144,7 @@ export default function Kreator({ def }) {
     if (etap !== "wypelnianie" || !prowadz || !aktywne) return;
     const el = document.getElementById(`pole-${aktywne}`);
     if (!el) return;
-    el.scrollIntoView({ block: "center", behavior: ruchOgraniczony() ? "auto" : "smooth" });
+    el.scrollIntoView({ block: "center", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     const cel = el.querySelector(`input:checked, #in-${aktywne}, input:not([disabled]), select, button`);
     setTimeout(() => cel?.focus({ preventScroll: true }), 50);
   }, [aktywne, etap, prowadz]);
@@ -152,6 +152,19 @@ export default function Kreator({ def }) {
   useEffect(() => {
     if (etap !== "wypelnianie") gora.current?.scrollIntoView({ block: "start" });
   }, [etap]);
+
+  // W trybie „prowadź mnie” widać tylko jedno pole na nieruchomej scenie — strona się nie przewija
+  const scena = etap === "wypelnianie" && prowadz && !!aktywne;
+  useEffect(() => {
+    if (!scena) return;
+    const poprzedni = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("scena-otwarta");
+    return () => { document.body.style.overflow = poprzedni; document.body.classList.remove("scena-otwarta"); };
+  }, [scena]);
+  useEffect(() => {
+    if (poPrzewodniku) gora.current?.scrollIntoView({ block: "start" });
+  }, [poPrzewodniku]);
 
   const ustaw = (id, v) => {
     setW((s) => ({ ...s, [id]: v }));
@@ -164,6 +177,14 @@ export default function Kreator({ def }) {
     setAktywne(null);
     setEtap(braki(w, ctx, POLA).length ? "braki" : "przeglad");
   };
+  // Koniec prowadzenia: pokazujemy cały formularz — można go przewijać i poprawiać
+  const koniecPrzewodnika = () => {
+    if (kolejka) return zakoncz();
+    setAktywne(null);
+    setProwadz(false);
+    setPoPrzewodniku(true);
+    setPokazBledy(true);
+  };
 
   const przejdz = (kierunek) => {
     const i = kolejnosc.indexOf(aktywne);
@@ -171,7 +192,7 @@ export default function Kreator({ def }) {
     setBladAktywnego(false);
     setPrzypomnij(false);
     if (nast) setAktywne(nast);
-    else if (kierunek > 0) zakoncz();
+    else if (kierunek > 0) koniecPrzewodnika();
   };
 
   const dalej = () => {
@@ -201,6 +222,7 @@ export default function Kreator({ def }) {
   };
 
   const zacznij = (zPrzewodnikiem) => {
+    setPoPrzewodniku(false);
     setEtap("wypelnianie");
     setKolejka(null);
     setProwadz(zPrzewodnikiem);
@@ -221,6 +243,8 @@ export default function Kreator({ def }) {
       numer: numer || undefined,
       typ: def.symbol,
       nazwa: def.tytul,
+      adresat,
+      adresatNazwa,
       osoba: { imie: ctx.profil.imie, nazwisko: ctx.profil.nazwisko, pesel: ctx.profil.pesel },
       dane: wyczysc(w, ctx, POLA),
       kontekst: {
@@ -249,6 +273,10 @@ export default function Kreator({ def }) {
   const startowe = Object.keys(wartosciStartowe(sesja));
   const zaczety = Object.keys(w).some((k) => !startowe.includes(k));
   const uwagaStart = def.uwagaStart?.(ctx);
+  // Gdzie trafi wniosek: pracodawca (urlopy; zasiłek, gdy firma ma ponad 20 osób) albo ZUS
+  const adresat = def.adresat?.(ctx) || "zus";
+  const adresatNazwa = adresat === "pracodawca" ? ctx.zus?.ubezpieczenie?.platnik || "Twój pracodawca" : adresat === "usc" ? "Urząd stanu cywilnego" : "ZUS";
+  const doKogo = adresat === "pracodawca" ? `do pracodawcy (${adresatNazwa})` : adresat === "usc" ? "do urzędu stanu cywilnego" : "do ZUS";
 
   // ================= WIDOKI =================
   return (
@@ -278,6 +306,30 @@ export default function Kreator({ def }) {
               <li><Ikona n="check" /> Nie wiesz, co wpisać? Pomiń pole — przypomnimy o nim przed wysłaniem.</li>
               <li><Ikona n="check" /> Zanim wyślesz, zobaczysz cały wniosek i możesz go poprawić.</li>
             </ul>
+            <div className={`wn-gdzie ${adresat}`}>
+              <div className="wn-gdzie-glowa">
+                <Ikona n={adresat === "pracodawca" ? "teczka" : "urzad"} rozmiar={22} />
+                <div>
+                  <small>Gdzie trafi formularz</small>
+                  <b>{adresat === "pracodawca" ? `Do pracodawcy — ${adresatNazwa}` : adresat === "usc" ? "Do urzędu stanu cywilnego (przez gov.pl)" : "Do ZUS"}</b>
+                </div>
+              </div>
+              <p>
+                {adresat === "usc"
+                  ? <>Odpis wydaje urząd stanu cywilnego z rejestru stanu cywilnego. Prawdziwy wniosek złożysz na <a href="https://www.gov.pl/web/cyfryzacja/rejestr-stanu-cywilnego" target="_blank" rel="noreferrer">gov.pl</a> — tu pokazujemy symulację.</>
+                  : def.kategoria === "urlopy"
+                  ? "Wnioski o urlopy zawsze składasz u pracodawcy (w dziale kadr). Wyślemy go elektronicznie — w prototypie to symulacja."
+                  : adresat === "pracodawca"
+                    ? "Twój pracodawca zgłasza do ubezpieczenia chorobowego ponad 20 osób, więc to on wypłaca zasiłek — dokumenty składasz u niego, nie w ZUS."
+                    : "Ten formularz rozpatruje ZUS. Wyślemy go przez eZUS (w prototypie — symulacja)."}
+              </p>
+              {(def.termin || def.dokumenty) && (
+                <dl className="wn-gdzie-dl">
+                  {def.termin && <div><dt><Ikona n="zegar" rozmiar={16} /> Termin</dt><dd>{def.termin}</dd></div>}
+                  {def.dokumenty && <div><dt><Ikona n="plik" rozmiar={16} /> Dokumenty</dt><dd><ul>{def.dokumenty.map((d) => <li key={d}>{d}</li>)}</ul></dd></div>}
+                </dl>
+              )}
+            </div>
             {uwagaStart && (
               <p className="wn-uwaga-proto">
                 <Ikona n="info" /> {uwagaStart}
@@ -305,12 +357,12 @@ export default function Kreator({ def }) {
 
         {etap === "wypelnianie" && (
           <>
-            <div className={`wn-hud ${prowadz ? "nad-zaslona" : ""}`}>
+            <div className={`wn-hud ${scena ? "nad-zaslona" : ""}`}>
               <div className="wn-hud-in">
                 <div className="wn-hud-tytul">
                   <b>{def.symbol}</b>
                   <span>
-                    {kolejka ? `Poprawiasz wybrane pola` : `${gotowe} z ${wszystkie} wymaganych pól`}
+                    {kolejka ? "Poprawiasz wybrane pola" : `${gotowe} z ${wszystkie} wymaganych pól`}
                     {pominiete.length > 0 && <span className="wn-chip uwaga">Pominięte: {pominiete.length}</span>}
                   </span>
                 </div>
@@ -321,18 +373,30 @@ export default function Kreator({ def }) {
                   type="button"
                   className="wn-btn wn-btn-drugi wn-btn-maly"
                   onClick={() => {
-                    if (prowadz) {
+                    if (scena) {
                       setProwadz(false);
-                    } else {
-                      setProwadz(true);
-                      setAktywne(aktywne || brakujace[0]?.id || widocznePola(w, ctx, POLA)[0].id);
+                      setAktywne(null);
+                      return;
                     }
+                    setProwadz(true);
+                    setPoPrzewodniku(false);
+                    setAktywne(brakujace[0]?.id || widocznePola(w, ctx, POLA)[0].id);
                   }}
                 >
-                  {prowadz ? "Wyłącz przewodnik" : "Włącz przewodnik"}
+                  {scena ? "Wyłącz przewodnik" : "Włącz przewodnik"}
                 </button>
               </div>
             </div>
+
+            {poPrzewodniku && (
+              <div className="wn-alert ok wn-po-przew">
+                <Ikona n="check" />
+                <div>
+                  <b>Przeszliśmy przez wszystkie pola.</b>
+                  <p>Poniżej jest cały formularz — przewiń, sprawdź i popraw, co chcesz. Potem kliknij „Sprawdź wniosek”.</p>
+                </div>
+              </div>
+            )}
 
             {uwagaUrzednika?.komentarz && (
               <div className="wn-alert uwaga">
@@ -344,12 +408,12 @@ export default function Kreator({ def }) {
               </div>
             )}
 
-            {prowadz && aktywne && <div className="wn-zaslona" onClick={() => setPrzypomnij(true)} aria-hidden="true" />}
+            {scena && <div className="wn-zaslona" onClick={() => setPrzypomnij(true)} aria-hidden="true" />}
 
             <div
               className="wn-obszar"
               onKeyDown={(e) => {
-                if (prowadz && e.key === "Enter" && e.target.tagName === "INPUT" && !["file", "checkbox"].includes(e.target.type)) {
+                if (scena && e.key === "Enter" && e.target.tagName === "INPUT" && !["file", "checkbox"].includes(e.target.type)) {
                   e.preventDefault();
                   dalej();
                 }
@@ -360,13 +424,13 @@ export default function Kreator({ def }) {
                 w={w}
                 ctx={ctx}
                 ustaw={ustaw}
-                prowadz={prowadz && !!aktywne}
-                aktywne={prowadz ? aktywne : null}
+                prowadz={scena}
+                aktywne={scena ? aktywne : null}
                 pominiete={pominiete}
                 pokazBledy={pokazBledy}
                 bladAktywnego={bladAktywnego}
                 dymek={
-                  poleAkt && (
+                  scena && poleAkt && (
                     <Dymek
                       pole={poleAkt}
                       w={w}
@@ -380,25 +444,23 @@ export default function Kreator({ def }) {
                       onDalej={dalej}
                       onPomin={pomin}
                       onWstecz={() => przejdz(-1)}
-                      onWylacz={() => setProwadz(false)}
+                      onWylacz={() => { setProwadz(false); setAktywne(null); }}
                     />
                   )
                 }
               />
-              {!prowadz && (
-                <div className="wn-dol">
-                  <button
-                    type="button"
-                    className="wn-btn wn-btn-glowny wn-btn-duzy"
-                    onClick={() => {
-                      setPokazBledy(true);
-                      zakoncz();
-                    }}
-                  >
-                    Sprawdź wniosek <Ikona n="strzalka" />
-                  </button>
-                </div>
-              )}
+              {!scena && <div className="wn-dol">
+                <button
+                  type="button"
+                  className="wn-btn wn-btn-glowny wn-btn-duzy"
+                  onClick={() => {
+                    setPokazBledy(true);
+                    zakoncz();
+                  }}
+                >
+                  Sprawdź wniosek <Ikona n="strzalka" />
+                </button>
+              </div>}
             </div>
           </>
         )}
@@ -513,15 +575,17 @@ export default function Kreator({ def }) {
           <div className="wn-karta wn-sukces">
             <span className="wn-ikona-duza ok"><Ikona n="check" rozmiar={32} /></span>
             <h1>{def.symbol} wysłany</h1>
-            <p className="wn-lead">Numer sprawy: <b className="wn-mono">{wyslany.numer}</b></p>
+            <p className="wn-lead">Numer sprawy: <b className="wn-mono">{wyslany.numer}</b> · trafił {doKogo}</p>
             <ol className="wn-os">
               <li className="done"><span /> <b>Wysłany</b><small>{new Date().toLocaleDateString("pl-PL")}</small></li>
-              <li className="teraz"><span /> <b>Sprawdza urzędnik</b><small>Damy znać, jeśli czegoś zabraknie</small></li>
+              <li className="teraz"><span /> <b>{adresat === "pracodawca" ? "Sprawdzają kadry pracodawcy" : adresat === "usc" ? "Przygotowuje urząd stanu cywilnego" : "Sprawdza urzędnik ZUS"}</b><small>Damy znać, jeśli czegoś zabraknie</small></li>
               <li><span /> <b>{def.ostatniKrok || "Decyzja i wypłata"}</b><small>{def.poWyslaniu ? def.poWyslaniu(ctx) : "Odpowiedź dostaniesz w Moich sprawach"}</small></li>
             </ol>
             <div className="wn-przyciski">
               <button type="button" className="wn-btn wn-btn-glowny wn-btn-duzy" onClick={() => nav("/przewodnik/sprawy")}>Przejdź do Moich spraw</button>
-              <Link className="wn-btn wn-btn-drugi wn-btn-duzy" to="/przewodnik/urzednik">Zobacz widok urzędnika (demo)</Link>
+              {adresat !== "usc" && <Link className="wn-btn wn-btn-drugi wn-btn-duzy" to={adresat === "pracodawca" ? "/przewodnik/pracodawca" : "/przewodnik/urzednik"}>
+                {adresat === "pracodawca" ? "Zobacz widok pracodawcy (demo)" : "Zobacz widok urzędnika (demo)"}
+              </Link>}
             </div>
           </div>
         )}

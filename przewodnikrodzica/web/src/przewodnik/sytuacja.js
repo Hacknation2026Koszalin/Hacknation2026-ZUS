@@ -9,7 +9,7 @@ import { ETAPY } from "./dane.js";
 export const PYTANIA = {
   rola: {
     pytanie: "Kim jesteś dla dziecka?",
-    opis: "Od tego zależy, które urlopy możesz wziąć.",
+    opis: "Od tego zależy, jakie urlopy, zasiłki i inne świadczenia Ci przysługują.",
     opcje: [
       { v: "mama", t: "Mamą" },
       { v: "tata", t: "Tatą" },

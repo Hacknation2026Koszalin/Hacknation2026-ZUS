@@ -101,7 +101,6 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
   const etapDoOceny = etapyDlaRoli(odp.rola).find((x) => x.v === odp.etap)?.etap;
   const sytuacja = pyt === "wynik" ? ocenSytuacje(odp, zus, etapDoOceny) : null;
   const wszystkichKrokow = pytania.length + 1;
-  const procent = krok > 0 && krok < ostatni ? Math.round((krok / SLAJDY.length) * 100) : 0;
 
   return (
     <div className={`pw-overlay ${wylot ? "is-closing" : ""}`}>
@@ -117,17 +116,6 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
             )}
           </div>
 
-          {krok > 0 && krok < ostatni && (
-            <div className="pw-progress">
-              <div className="pw-progress__head">
-                <span>Jak działa przewodnik</span>
-                <span>{krok} / {SLAJDY.length}</span>
-              </div>
-              <div className="pw-progress__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={procent} aria-label="Postęp samouczka">
-                <div style={{ width: `${procent}%` }} />
-              </div>
-            </div>
-          )}
 
           {/* ===== PYTANIA ===== */}
           {krok === 0 && typeof pyt === "number" && (() => {
@@ -135,10 +123,6 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
             const P = PYTANIA[klucz];
             return (
               <div className="pw-content pw-content--start" key={klucz}>
-                <p className="pw-eyebrow">
-                  Krok {pyt + 1} z {wszystkichKrokow}
-                  {pyt === 0 && ` · Cześć${profil?.imie ? `, ${profil.imie}` : ""}`}
-                </p>
                 <h2 id="pw-title">{P.pytanie}</h2>
                 <p className="pw-lead">{P.opis}</p>
                 <div className="pw-stage-list" role="radiogroup" aria-labelledby="pw-title">
@@ -159,7 +143,6 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
                       <span className="pw-stage__text">
                         <span className="pw-stage__name">
                           {o.t}
-                          {klucz === "praca" && pracaWgZus === o.v && <span className="pw-wgzus">według danych ZUS</span>}
                         </span>
                         {o.opis && <span className="pw-stage__desc">{o.opis}</span>}
                       </span>
@@ -169,7 +152,7 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
                 </div>
                 <div className="pw-ankieta-dol">
                   {pyt > 0 ? <button type="button" className="pw-btn pw-btn--secondary" onClick={wstecz}>Wstecz</button> : <span />}
-                  <span className="pw-prywatnosc">Pytamy tylko o to, czego nie ma w danych ZUS.</span>
+                  <span className="pw-krok-licznik">Krok {pyt + 1} z {wszystkichKrokow}</span>
                 </div>
               </div>
             );
@@ -178,7 +161,6 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
           {/* ===== PODSUMOWANIE ===== */}
           {krok === 0 && pyt === "wynik" && sytuacja && (
             <div className="pw-content pw-content--start">
-              <p className="pw-eyebrow">Krok {wszystkichKrokow} z {wszystkichKrokow} · Podsumowanie</p>
               <h2 id="pw-title">{sytuacja.tytul}</h2>
               <ul className="pw-wynik">
                 {sytuacja.punkty.map((p, i) => <li key={i}>{p}</li>)}
@@ -195,13 +177,14 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
             <div className="pw-content pw-content--slide">
               {krok === 1 && wybranyEtap && !tylkoSlajdy && (
                 <p className="pw-stage-message">
-                  {wybranyEtap.powitanie} <span>Teraz pokażemy Ci w kilku krokach, jak działa przewodnik.</span>
+                  <b>{wybranyEtap.powitanie}</b> <span>Teraz pokażemy Ci w kilku krokach, jak działa przewodnik.</span>
                 </p>
               )}
-              <div className="pw-mini-icon" aria-hidden="true">
-                <img src={IKONY_SLAJDOW[(krok - 1) % IKONY_SLAJDOW.length]} alt="" />
-              </div>
-              <h2 id="pw-title">{slajd.tytul}</h2>
+              <figure className="pw-zrzut">
+                <img src={slajd.obraz} alt={`Zrzut ekranu: ${slajd.tytul} — zaznaczone miejsce w aplikacji`} />
+                <figcaption>{slajd.gdzie}</figcaption>
+              </figure>
+              <h2 id="pw-title"><span className="pw-nr">{krok}</span> {slajd.tytul}</h2>
               <p className="pw-lead pw-lead--slide">{slajd.tekst}</p>
             </div>
           )}
@@ -225,11 +208,16 @@ export default function PrzewodnikPowitalny({ onZamknij, tylkoSlajdy = false }) 
               <button type="button" className="pw-btn pw-btn--secondary" onClick={() => setKrok((p) => Math.max(p - 1, 1))} disabled={krok === 1}>
                 Wstecz
               </button>
-              <div className="pw-dots" aria-label={`Slajd ${krok} z ${SLAJDY.length}`}>
+              <ol className="pw-os" aria-label={`Krok ${krok} z ${SLAJDY.length}`}>
                 {SLAJDY.map((s, i) => (
-                  <button key={s.id} type="button" className={i + 1 === krok ? "is-active" : ""} aria-label={`Slajd ${i + 1}`} onClick={() => setKrok(i + 1)} />
+                  <li key={s.id} className={i + 1 === krok ? "teraz" : i + 1 < krok ? "zrobione" : ""}>
+                    <button type="button" aria-current={i + 1 === krok ? "step" : undefined} aria-label={`Krok ${i + 1}: ${s.tytul}`} onClick={() => setKrok(i + 1)}>
+                      <span className="pw-os-nr">{i + 1 < krok ? "✓" : i + 1}</span>
+                      <span className="pw-os-txt">{s.krotko}</span>
+                    </button>
+                  </li>
                 ))}
-              </div>
+              </ol>
               <button type="button" className="pw-btn pw-btn--primary" onClick={() => setKrok((p) => Math.min(p + 1, ostatni))}>
                 {krok === SLAJDY.length ? "Zakończ" : "Dalej"}
               </button>

@@ -112,6 +112,8 @@ export default function Kalkulator() {
   // Jeśli osoba podała wcześniej datę albo rolę — wpisujemy je z góry
   const [f, setF] = useState(() => ({
     ...START,
+    // Od razu liczymy z podstawy z ZUS — wynik widać bez wpisywania czegokolwiek
+    ...(zus?.podstawaWymiaru ? { kwotaTyp: "podstawa", podstawaM: zus.podstawaWymiaru } : {}),
     dataPorodu: terminPorodu || dataPorodu || "",
     tryb: ankieta?.rola === "tata" ? "oboje" : START.tryb,
   }));
@@ -140,7 +142,8 @@ export default function Kalkulator() {
     [f, podstawaM, podstawaO],
   );
 
-  const wczytaj = (z) => ustaw({ ...START, kwotaTyp: "brutto", ...z.stan });
+  const [zestaw, setZestaw] = useState(null);
+  const wczytaj = (z) => { setZestaw(z.id); ustaw({ ...START, kwotaTyp: "brutto", ...z.stan }); };
   const zusPodstawa = zus?.podstawaWymiaru;
 
   return (
@@ -157,7 +160,8 @@ export default function Kalkulator() {
           <button
             key={z.id}
             type="button"
-            className="kalk-chip"
+            className={`kalk-chip ${zestaw === z.id ? "aktywny" : ""}`}
+            aria-pressed={zestaw === z.id}
             onClick={() => wczytaj(z)}
           >
             {z.nazwa}
@@ -549,9 +553,11 @@ function Radio({ name, wart, onChange, opcje }) {
           <input
             type="radio"
             name={name}
+            className="sr-only"
             checked={wart === v}
             onChange={() => onChange(v)}
           />
+          {wart === v && <span aria-hidden="true">✓ </span>}
           <span>{n}</span>
         </label>
       ))}
@@ -559,19 +565,19 @@ function Radio({ name, wart, onChange, opcje }) {
   );
 }
 
+// Suwak z przyciskami − / + (łatwiej trafić niż w sam suwak, zwłaszcza na telefonie)
 function Suwak({ etykieta, min, max, krok = 1, wart, onChange, opis }) {
+  const v = Math.min(Math.max(Number(wart) || 0, min), max);
   return (
-    <label className="kalk-pole">
+    <div className="kalk-pole kalk-suwak">
       <span>{etykieta}</span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={krok}
-        value={wart}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
+      <div className="kalk-suwak-rzad">
+        <button type="button" aria-label="Mniej" onClick={() => onChange(Math.max(min, v - krok))} disabled={v <= min}>−</button>
+        <input type="range" min={min} max={max} step={krok} value={v} aria-label={etykieta} onChange={(e) => onChange(Number(e.target.value))} />
+        <button type="button" aria-label="Więcej" onClick={() => onChange(Math.min(max, v + krok))} disabled={v >= max}>+</button>
+        <b className="kalk-suwak-wart">{v}</b>
+      </div>
       <span className="muted small">{opis}</span>
-    </label>
+    </div>
   );
 }

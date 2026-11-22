@@ -91,3 +91,10 @@ export const STATUSY = {
   przyjety: { tekst: "Przyjęty do realizacji", klasa: "ok" },
   do_uzupelnienia: { tekst: "Do uzupełnienia", klasa: "uwaga" },
 };
+
+/** Status z uwzględnieniem, kto rozpatruje (pracodawca czy ZUS). */
+export const statusDla = (w) => {
+  const st = STATUSY[w.status] || STATUSY.u_urzednika;
+  if (w.status === "u_urzednika" || !w.status) return { ...st, tekst: w.adresat === "pracodawca" ? "U pracodawcy" : w.adresat === "usc" ? "W urzędzie stanu cywilnego" : "W ZUS — u urzędnika" };
+  return st;
+};

@@ -10,7 +10,7 @@ import { formularz } from "../wniosek/formularze/index.js";
 
 const defDla = (wn) => formularz(wn?.typ) || ZAM;
 import { czyWidoczne, czyWymagane, pokazWartosc } from "../wniosek/silnik.js";
-import { STATUSY, pobierzWnioski, zmienStatus } from "../wniosek/wnioski.js";
+import { STATUSY, pobierzWnioski, statusDla, zmienStatus } from "../wniosek/wnioski.js";
 import Ikona from "../wniosek/Ikona.jsx";
 import "../wniosek/wniosek.css";
 
@@ -37,7 +37,8 @@ function kontrole(wn) {
   return wynik;
 }
 
-export default function Urzednik() {
+export default function Urzednik({ rola = "zus" }) {
+  const pracodawca = rola === "pracodawca";
   const [lista, setLista] = useState([]);
   const [wybrany, setWybrany] = useState(null);
   const [prosba, setProsba] = useState(false);
@@ -45,7 +46,8 @@ export default function Urzednik() {
   const [komentarz, setKomentarz] = useState("");
   const [komunikat, setKomunikat] = useState("");
 
-  const odswiez = () => pobierzWnioski().then(setLista);
+  // Urzędnik ZUS widzi wnioski do ZUS, kadry — wnioski do pracodawcy
+  const odswiez = () => pobierzWnioski().then((l) => setLista(l.filter((x) => (pracodawca ? x.adresat === "pracodawca" : !["pracodawca", "usc"].includes(x.adresat)))));
   useEffect(() => {
     odswiez();
     const t = setInterval(odswiez, 4000);
@@ -87,7 +89,7 @@ export default function Urzednik() {
     <div className="wn" style={{ paddingTop: 0 }}>
       <div className="urz-pasek">
         <div className="wrap">
-          <Ikona n="urzad" /> Panel urzędnika <small>— symulacja, dane testowe</small>
+          <Ikona n={pracodawca ? "teczka" : "urzad"} /> {pracodawca ? "Panel pracodawcy — dział kadr" : "Panel urzędnika ZUS"} <small>— symulacja, dane testowe</small>
           <Link to="/przewodnik/sprawy" style={{ marginLeft: "auto", color: "#fff", fontWeight: 400, fontSize: 14 }}>Wróć do widoku obywatela</Link>
         </div>
       </div>
@@ -95,14 +97,14 @@ export default function Urzednik() {
         {lista.length === 0 ? (
           <div className="wn-karta">
             <h1>Brak wniosków</h1>
-            <p>Złóż wniosek jako Anna Testowa, a pojawi się tutaj.</p>
-            <Link to="/przewodnik/swiadczenia/zasilek-macierzynski/wniosek" className="wn-btn wn-btn-glowny">Przejdź do wniosku</Link>
+            <p>{pracodawca ? "Złóż wniosek o urlop (albo o zasiłek, gdy firma ma ponad 20 osób), a pojawi się tutaj." : "Złóż wniosek do ZUS jako Anna Testowa, a pojawi się tutaj."}</p>
+            <Link to="/przewodnik/wnioski" className="wn-btn wn-btn-glowny">Przejdź do wniosków</Link>
           </div>
         ) : (
           <div className="urz-uklad">
             <div className="urz-lista" role="list" aria-label="Wnioski">
               {lista.map((x) => {
-                const st = STATUSY[x.status] || STATUSY.u_urzednika;
+                const st = statusDla(x);
                 return (
                   <button key={x.numer} role="listitem" type="button" className={`urz-pozycja ${x.numer === wn.numer ? "akt" : ""}`} onClick={() => wybierz(x.numer)}>
                     <b>{x.osoba?.imie} {x.osoba?.nazwisko}</b>
@@ -123,7 +125,7 @@ export default function Urzednik() {
                       {wn.osoba?.imie} {wn.osoba?.nazwisko} · PESEL <span className="wn-mono">{wn.osoba?.pesel}</span> · nr <span className="wn-mono">{wn.numer}</span>
                     </small>
                   </div>
-                  <span className={`wn-chip ${(STATUSY[wn.status] || STATUSY.u_urzednika).klasa}`}>{(STATUSY[wn.status] || STATUSY.u_urzednika).tekst}</span>
+                  <span className={`wn-chip ${statusDla(wn).klasa}`}>{statusDla(wn).tekst}</span>
                 </div>
               </div>
 
@@ -136,7 +138,7 @@ export default function Urzednik() {
                     </li>
                   ))}
                 </ul>
-                <p className="sw-dopisek">Sprawdzenie pomaga, ale decyzję zawsze podejmuje urzędnik.</p>
+                <p className="sw-dopisek">Sprawdzenie pomaga, ale decyzję zawsze podejmuje {pracodawca ? "pracownik kadr" : "urzędnik"}.</p>
               </div>
 
               <div className="wn-karta">
@@ -170,7 +172,7 @@ export default function Urzednik() {
                 {!prosba ? (
                   <div className="wn-przyciski" style={{ marginTop: 0 }}>
                     <button type="button" className="wn-btn wn-btn-glowny wn-btn-duzy" onClick={przyjmij} disabled={wn.status === "przyjety"}>
-                      <Ikona n="check" /> Przyjmij wniosek
+                      <Ikona n="check" /> {pracodawca ? "Zatwierdź wniosek" : "Przyjmij wniosek"}
                     </button>
                     <button type="button" className="wn-btn wn-btn-drugi wn-btn-duzy" onClick={() => { setProsba(true); setKomunikat(""); }}>
                       Poproś o uzupełnienie

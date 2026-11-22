@@ -99,7 +99,7 @@ function Wejscie({ pole, w, ctx, ustaw, bledne }) {
       const p = ctx.profil || {};
       // Pole może pokazać własne wiersze (np. dane płatnika z ZUS) — domyślnie dane z mObywatela
       const wiersze = pole.wiersze
-        ? pole.wiersze(ctx)
+        ? pole.wiersze(ctx, w)
         : [["Imię i nazwisko", `${p.imie} ${p.nazwisko}`], ["PESEL", p.pesel, true], ["Adres zamieszkania", p.adres]];
       return (
         <div className="wn-potw">
@@ -146,7 +146,7 @@ function Wejscie({ pole, w, ctx, ustaw, bledne }) {
   }
 }
 
-function Pole({ pole, pola, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBlad, dymek }) {
+export function Pole({ pole, pola, w, ctx, ustaw, prowadz, aktywne, pominiete, pokazBlad, dymek }) {
   const widoczne = czyWidoczne(pole, w, ctx);
 
   // Pole, które nie dotyczy tej osoby — wyszarzone, nigdy wymagane

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useJezyk } from "../jezyk.js";
 import { createPortal } from "react-dom";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
@@ -9,11 +10,13 @@ import { Dzwonek } from "./Powiadomienia.jsx";
 import CzasSesji from "./CzasSesji.jsx";
 import { OTWORZ_ZUSANNE } from "./Zusanna.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
+import { P } from "../parametry.js";
 
 // Jedno menu po zalogowaniu — wszystko kręci się wokół rodzicielstwa.
 // „Świadczenia” i „Pomoc” rozwijają listę po najechaniu (albo po Tab).
 
 function Rozwijane({ nazwa, ikona, do: cel, aktywne, pozycje, onAkcja }) {
+  const [, t] = useJezyk();
   const [otwarte, setOtwarte] = useState(false);
   const zamkniecie = useRef(null);
   const otworz = () => { clearTimeout(zamkniecie.current); setOtwarte(true); };
@@ -44,7 +47,7 @@ function Rozwijane({ nazwa, ikona, do: cel, aktywne, pozycje, onAkcja }) {
             )
           )}
           <NavLink role="menuitem" to={cel} className="mw-wszystko" onClick={() => setOtwarte(false)}>
-            Zobacz wszystko <Ikona n="strzalka" rozmiar={16} />
+            {t("Zobacz wszystko")} <Ikona n="strzalka" rozmiar={16} />
           </NavLink>
         </div>
       )}
@@ -56,7 +59,21 @@ export default function PasekModulu() {
   const { setPrzewodnikOtwarty, wyloguj } = useSesja();
   const { state, pathname } = useLocation();
   const [ustawienia, setUstawienia] = useState(false);
+  const [, t] = useJezyk();
   const [slot, setSlot] = useState(null);
+  const [menuOtwarte, setMenuOtwarte] = useState(false);
+  useEffect(() => {
+    const f = () => setUstawienia(true);
+    window.addEventListener("otworz-ustawienia", f);
+    return () => window.removeEventListener("otworz-ustawienia", f);
+  }, []);
+  useEffect(() => { setMenuOtwarte(false); }, [pathname]);
+  useEffect(() => {
+    if (!menuOtwarte) return;
+    const esc = (e) => e.key === "Escape" && setMenuOtwarte(false);
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [menuOtwarte]);
   useEffect(() => { setSlot(document.getElementById("naglowek-akcje")); }, []);
   const akcja = (a) => {
     if (a === "zusanna") window.dispatchEvent(new Event(OTWORZ_ZUSANNE));
@@ -66,32 +83,36 @@ export default function PasekModulu() {
   return (
     <header className="modul-pasek">
       <div className="wrap modul-in">
-        <nav className="modul-zakladki" aria-label="Menu konta">
-          <NavLink to="/przewodnik/pulpit"><Ikona n="dom" rozmiar={18} /> Moje konto</NavLink>
-          <NavLink to="/przewodnik/sciezka"><Ikona n="mapa" rozmiar={18} /> Moja ścieżka</NavLink>
-          <Rozwijane nazwa="Świadczenia" ikona="dokument" do="/przewodnik/swiadczenia" aktywne={pathname.startsWith("/przewodnik/swiadczenia") && !pathname.endsWith("/wniosek")} pozycje={SWIADCZENIA} />
+        <button type="button" className="hamburger" aria-expanded={menuOtwarte} aria-controls="menu-konta" onClick={() => setMenuOtwarte((o) => !o)}>
+          <span className="hamburger-ikona" aria-hidden="true"><span /><span /><span /></span>
+          {menuOtwarte ? t("Zamknij") : t("Menu")}
+        </button>
+        <nav id="menu-konta" className={`modul-zakladki ${menuOtwarte ? "otwarte" : ""}`} aria-label="Menu konta">
+          <NavLink to="/przewodnik/pulpit"><Ikona n="dom" rozmiar={18} /> {t("Moje konto")}</NavLink>
+          <NavLink to="/przewodnik/sciezka"><Ikona n="mapa" rozmiar={18} /> {t("Moja ścieżka")}</NavLink>
+          <Rozwijane nazwa={t("Świadczenia")} ikona="dokument" do="/przewodnik/swiadczenia" aktywne={pathname.startsWith("/przewodnik/swiadczenia") && !pathname.endsWith("/wniosek")} pozycje={SWIADCZENIA} />
           <Rozwijane
-            nazwa="Złóż wniosek" ikona="pioro" do="/przewodnik/wnioski"
+            nazwa={t("Złóż wniosek")} ikona="pioro" do="/przewodnik/wnioski"
             aktywne={pathname.startsWith("/przewodnik/wnioski") || pathname.endsWith("/wniosek")}
             pozycje={FORMULARZE.map((f) => ({ id: f.symbol, nazwa: <><span className="mw-sym">{f.symbol}</span> {f.menu}</>, ikona: "dokument", link: `/przewodnik/wnioski/${slug(f)}` }))}
           />
-          <NavLink to="/przewodnik/kalkulator"><Ikona n="kalkulator" rozmiar={18} /> Kalkulator</NavLink>
-          <NavLink to="/przewodnik/sprawy"><Ikona n="teczka" rozmiar={18} /> Moje sprawy</NavLink>
-          <Rozwijane nazwa="Pomoc" ikona="kolo" do="/przewodnik/pomoc" aktywne={pathname.startsWith("/przewodnik/pomoc")} pozycje={POMOC} onAkcja={akcja} />
+          <NavLink to="/przewodnik/kalkulator"><Ikona n="kalkulator" rozmiar={18} /> {t("Kalkulator")}</NavLink>
+          <NavLink to="/przewodnik/sprawy"><Ikona n="teczka" rozmiar={18} /> {t("Moje sprawy")}</NavLink>
+          <Rozwijane nazwa={t("Pomoc")} ikona="kolo" do="/przewodnik/pomoc" aktywne={pathname.startsWith("/przewodnik/pomoc")} pozycje={POMOC} onAkcja={akcja} />
         </nav>
         {(() => {
           // Czas sesji, powiadomienia, ustawienia i samouczek mieszkają w nagłówku (w miejscu wyszukiwarki)
           const ikony = (
             <>
               <CzasSesji />
-              <Dzwonek />
-              <button className="ikona-btn zebatka" aria-label="Ustawienia" title="Ustawienia" onClick={() => setUstawienia(true)}>
+              {P.funkcje.powiadomienia && <Dzwonek />}
+              <button className="ikona-btn zebatka" aria-label={t("Ustawienia")} title={t("Ustawienia")} onClick={() => setUstawienia(true)}>
                 <Ikona n="zebatka" rozmiar={22} />
               </button>
               <button
                 className={`ikona-btn pomoc-btn ${state?.zPrzewodnika ? "pulsuje" : ""}`}
                 aria-label="Samouczek — jak działa przewodnik"
-                title="Samouczek"
+                title={t("Samouczek")}
                 onClick={() => setPrzewodnikOtwarty(true)}
               >?</button>
             </>
@@ -99,10 +120,11 @@ export default function PasekModulu() {
           return slot ? createPortal(ikony, slot) : ikony;
         })()}
         <button type="button" className="wyloguj-btn" onClick={wyloguj}>
-          <Ikona n="wyloguj" rozmiar={18} /> <span>Wyloguj się</span>
+          <Ikona n="wyloguj" rozmiar={18} /> <span>{t("Wyloguj się")}</span>
         </button>
       </div>
-      <Ustawienia otwarte={ustawienia} onZamknij={() => setUstawienia(false)} />
+      {/* Okno ustawień renderujemy w <body>, żeby nie chowało się pod nagłówkiem */}
+      {createPortal(<div className="modul us-portal"><Ustawienia otwarte={ustawienia} onZamknij={() => setUstawienia(false)} /></div>, document.body)}
     </header>
   );
 }

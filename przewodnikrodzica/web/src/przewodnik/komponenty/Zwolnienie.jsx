@@ -2,6 +2,7 @@
 import { dzisISO, fmtDzien, ileDni } from "../terminy.js";
 import { maZadluzenie } from "./Zadluzenie.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
+import { useJezyk } from "../jezyk.js";
 
 const KODY = { B: "ciąża — zasiłek 100% podstawy", A: "przerwa w niezdolności do 60 dni", C: "nadużycie alkoholu", D: "gruźlica", E: "choroba zakaźna" };
 
@@ -35,6 +36,7 @@ export function terminZwolnienia(zus, opcje) {
 }
 
 export default function StatusZwolnienia({ zus, etap, data }) {
+  const [, t] = useJezyk();
   const dzis = dzisISO();
   const lista = [...(zus?.eZLA || [])].sort((a, b) => (a.od < b.od ? 1 : -1));
   const trwa = lista.find((z) => z.od <= dzis && z.do >= dzis);
@@ -47,7 +49,7 @@ export default function StatusZwolnienia({ zus, etap, data }) {
       <div className="wrap">
         <div className="sh-glowa">
           <span className="plan-kicker">Dane z e-ZLA</span>
-          <h2 id="zl-tytul">Status zwolnienia lekarskiego</h2>
+          <h2 id="zl-tytul">{t("Status zwolnienia lekarskiego")}</h2>
         </div>
 
         {trwa ? (() => {

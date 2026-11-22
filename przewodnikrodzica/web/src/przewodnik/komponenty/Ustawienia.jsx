@@ -8,9 +8,12 @@ import { DataModal, useDataKluczowa } from "./DataKluczowa.jsx";
 import { DANE_ZUS_ZAPAS } from "../dane.js";
 import { useNadchodzace, usePowiadomienia } from "./Powiadomienia.jsx";
 import { pobierzIcs } from "../kalendarz.js";
+import { POWODY_USTANIA } from "./Umowa.jsx";
 import { PanelDostepnosci } from "./Dostepnosc.jsx";
 import { ZUS_Z_ZALEGLOSCIA, maZadluzenie } from "./Zadluzenie.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
+import { P } from "../parametry.js";
+import { useNavigate as useNav } from "react-router-dom";
 
 const tekstOdp = (klucz, v) => PYTANIA[klucz]?.opcje?.find((o) => o.v === v)?.t || "—";
 
@@ -88,6 +91,25 @@ export default function Ustawienia({ otwarte, onZamknij }) {
           <button type="button" className="dk-btn dk-btn-drugi" onClick={zmienOdpowiedzi}>Zmień odpowiedzi</button>
         </section>
 
+        <section className="us-sekcja" id="us-umowa">
+          <h3>Koniec umowy o pracę (opcjonalnie)</h3>
+          <p>Jeśli Twoja umowa się kończy, pokażemy, co to oznacza dla zasiłków. Data zostaje tylko w tej sesji.</p>
+          <div className="us-umowa">
+            <label>
+              <span>Data ustania stosunku pracy</span>
+              <input type="date" value={sesja.ustanie?.data || ""} onChange={(e) => sesja.ustaw({ ustanie: { ...(sesja.ustanie || {}), data: e.target.value } })} />
+            </label>
+            <label>
+              <span>Powód</span>
+              <select value={sesja.ustanie?.powod || ""} onChange={(e) => sesja.ustaw({ ustanie: { ...(sesja.ustanie || {}), powod: e.target.value } })}>
+                <option value="">— wybierz —</option>
+                {POWODY_USTANIA.map((p) => <option key={p.v} value={p.v}>{p.t}</option>)}
+              </select>
+            </label>
+          </div>
+          {sesja.ustanie?.data && <button type="button" className="wn-link" onClick={() => sesja.ustaw({ ustanie: null })}>Usuń datę końca umowy</button>}
+        </section>
+
         <section className="us-sekcja">
           <h3>Powiadomienia</h3>
           <label className="a11y-opcja">
@@ -106,13 +128,14 @@ export default function Ustawienia({ otwarte, onZamknij }) {
           <PanelDostepnosci />
         </section>
 
-        <section className="us-sekcja us-demo">
+        {P.funkcje.trybDemo && <section className="us-sekcja us-demo">
           <h3>Tryb demonstracyjny</h3>
           <label className="a11y-opcja">
             <span><b>Wariant: zaległość w składkach</b><small>Przedsiębiorczyni z zaległością {"—"} zasiłek wstrzymany do spłaty.</small></span>
             <input type="checkbox" role="switch" checked={zadluzenieDemo} onChange={(e) => przelaczZadluzenie(e.target.checked)} />
           </label>
-        </section>
+          <PrzelaczAdmin onZamknij={onZamknij} />
+        </section>}
 
         <section className="us-sekcja">
           <h3>Dane w tej przeglądarce</h3>
@@ -130,5 +153,15 @@ export default function Ustawienia({ otwarte, onZamknij }) {
     </div>
     <DataModal otwarty={modalDaty} onZamknij={() => setModalDaty(false)} />
     </>
+  );
+}
+
+// Przełącznik na panel administracyjny (w produkcji: tylko dla pracowników ZUS z uprawnieniami)
+function PrzelaczAdmin({ onZamknij }) {
+  const nav = useNav();
+  return (
+    <button type="button" className="dk-btn dk-btn-drugi us-admin" onClick={() => { onZamknij(); nav("/przewodnik/admin"); }}>
+      <Ikona n="zebatka" rozmiar={18} /> Przełącz na panel administracyjny
+    </button>
   );
 }

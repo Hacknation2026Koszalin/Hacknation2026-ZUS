@@ -1,6 +1,7 @@
 // ZŁÓŻ WNIOSEK — tylko formularze do złożenia (wiedza jest w „Świadczeniach”).
 // Każdy formularz otwiera ten sam kreator „prowadź mnie za rękę”.
 import { useState } from "react";
+import { useJezyk } from "../jezyk.js";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
 import { DANE_ZUS_ZAPAS, PROFIL_MOBYWATEL } from "../dane.js";
@@ -18,7 +19,9 @@ const maSzkic = (f) => {
   }
 };
 
-function KartaWniosku({ f, powod }) {
+function KartaWniosku({ f, powod, s }) {
+  const a = f.adresat?.({ zus: s?.zus });
+  const gdzie = a === "pracodawca" ? "u pracodawcy" : a === "usc" ? "w USC (gov.pl)" : "w ZUS";
   const szkic = maSzkic(f);
   return (
     <li>
@@ -29,6 +32,7 @@ function KartaWniosku({ f, powod }) {
           <span>{f.krotko}</span>
           <span className="zw-meta">
             <span><Ikona n="zegar" rozmiar={14} /> ok. {f.czas}</span>
+            <span className={`zw-gdzie ${a === "pracodawca" ? "prac" : "zus"}`}>Składasz {gdzie}</span>
             {powod && <span className="zw-chip ok"><Ikona n="check" rozmiar={14} /> {powod}</span>}
             {szkic && <span className="zw-chip szkic">Masz zapisany szkic</span>}
           </span>
@@ -80,6 +84,7 @@ export default function ZlozWniosek() {
   const sesja = useSesja();
   const s = { ...sesja, profil: sesja.profil || PROFIL_MOBYWATEL, zus: sesja.zus || DANE_ZUS_ZAPAS };
   const [szukaj, setSzukaj] = useState("");
+  const [, t] = useJezyk();
   const q = szukaj.trim().toLowerCase();
   const pasuje = (f) => !q || `${f.symbol} ${f.tytul} ${f.krotko}`.toLowerCase().includes(q);
   const polecane = FORMULARZE.map((f) => [f, f.polecany?.(s)]).filter(([, p]) => p);
@@ -88,7 +93,7 @@ export default function ZlozWniosek() {
     <div className="wn zw">
       <div className="wrap">
         <span className="plan-kicker">Złóż wniosek</span>
-        <h1>Wnioski i oświadczenia</h1>
+        <h1>{t("Wnioski i oświadczenia")}</h1>
         <p className="wn-lead">Wybierz formularz — poprowadzimy Cię pole po polu. Dane z mObywatela i ZUS wpiszemy za Ciebie.</p>
 
         <label className="zw-szukaj">
@@ -99,8 +104,8 @@ export default function ZlozWniosek() {
 
         {!q && polecane.length > 0 && (
           <section className="zw-sekcja">
-            <h2><Ikona n="check" /> Polecane dla Ciebie</h2>
-            <ul className="zw-lista">{polecane.map(([f, p]) => <KartaWniosku key={f.symbol} f={f} powod={p} />)}</ul>
+            <h2><Ikona n="check" /> {t("Polecane dla Ciebie")}</h2>
+            <ul className="zw-lista">{polecane.map(([f, p]) => <KartaWniosku key={f.symbol} f={f} powod={p} s={s} />)}</ul>
           </section>
         )}
 
@@ -110,7 +115,7 @@ export default function ZlozWniosek() {
           return (
             <section key={k.id} className="zw-sekcja">
               <h2><Ikona n={k.ikona} /> {k.nazwa}</h2>
-              <ul className="zw-lista">{lista.map((f) => <KartaWniosku key={f.symbol} f={f} powod={null} />)}</ul>
+              <ul className="zw-lista">{lista.map((f) => <KartaWniosku key={f.symbol} f={f} powod={null} s={s} />)}</ul>
             </section>
           );
         })}

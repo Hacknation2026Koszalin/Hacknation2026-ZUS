@@ -8,13 +8,25 @@ import {
 } from "react-router-dom";
 import { MENU } from "../data/nawigacja.js";
 import { PrzyciskDostepnosci } from "../przewodnik/komponenty/Dostepnosc.jsx";
+import { JEZYKI, ustawJezyk, useJezyk } from "../przewodnik/jezyk.js";
 
-const JEZYKI = [["PL", "Polski", true], ["ANG", "English — wkrótce", false], ["UKR", "Українська — wkrótce", false]];
+// Flaga UE (rysowana — 12 gwiazd na niebieskim tle)
+const FlagaUE = () => (
+  <svg width="46" height="31" viewBox="0 0 46 31" aria-hidden="true">
+    <rect width="46" height="31" fill="#039" />
+    {Array.from({ length: 12 }, (_, i) => {
+      const a = (i / 12) * 2 * Math.PI;
+      return <circle key={i} cx={23 + 9 * Math.sin(a)} cy={15.5 - 9 * Math.cos(a)} r="1.3" fill="#fc0" />;
+    })}
+  </svg>
+);
 
 export default function Header({ bezMenu = false }) {
   const [otwarte, setOtwarte] = useState(null);
   const [mobilne, setMobilne] = useState(false);
   const [fraza, setFraza] = useState("");
+  const [szukajOtwarte, setSzukajOtwarte] = useState(false);
+  const [jezyk, t] = useJezyk();
 
   const lokalizacja = useLocation();
   const nawiguj = useNavigate();
@@ -80,10 +92,8 @@ export default function Header({ bezMenu = false }) {
             />
 
             <span className="zus-header__identity">
-              <strong>
-                Zakład Ubezpieczeń Społecznych
-              </strong>
-              <small>Wersja demonstracyjna</small>
+              <strong>{t("Zakład Ubezpieczeń Społecznych")}</strong>
+              <small>{t("Wersja demonstracyjna")}</small>
             </span>
           </Link>
 
@@ -93,45 +103,35 @@ export default function Header({ bezMenu = false }) {
               <div id="naglowek-akcje" className="naglowek-akcje" />
               <PrzyciskDostepnosci ikona />
               <div className="jezyki" role="group" aria-label="Język serwisu">
-                {JEZYKI.map(([k, opis, aktywny]) => (
-                  <button key={k} type="button" lang={k === "PL" ? "pl" : k === "ANG" ? "en" : "uk"} aria-pressed={aktywny} title={opis} className={aktywny ? "aktywny" : ""} disabled={!aktywny}>{k}</button>
+                {JEZYKI.map(([kod, skrot, nazwa]) => (
+                  <button key={kod} type="button" lang={kod} aria-pressed={jezyk === kod} title={nazwa} className={jezyk === kod ? "aktywny" : ""} onClick={() => ustawJezyk(kod)}>{skrot}</button>
                 ))}
               </div>
             </div>
           ) : (
-          <form
-              className="zus-header__search"
-              role="search"
-              onSubmit={szukaj}
-            >
-              <label htmlFor="zus-search" className="sr-only">
-                Szukaj w serwisie
+            <div className="zh">
+              <a href="/o-zus/kontakt" className="zh-link">{t("Kontakt")}</a>
+              <label className="zh-jezyk">
+                <span className="sr-only">Język serwisu</span>
+                <select value={jezyk} onChange={(e) => ustawJezyk(e.target.value)}>
+                  {JEZYKI.map(([kod, skrot, nazwa]) => <option key={kod} value={kod} title={nazwa}>{kod.toUpperCase()}</option>)}
+                </select>
               </label>
-  
-              <input
-                id="zus-search"
-                type="search"
-                placeholder="Szukaj w serwisie"
-                value={fraza}
-                onChange={(e) => setFraza(e.target.value)}
-              />
-  
-              <button type="submit" aria-label="Szukaj">
-                <svg
-                  width="19"
-                  height="19"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="10.8" cy="10.8" r="7.2" />
-                  <path d="m16.2 16.2 4.3 4.3" />
-                </svg>
+              <span className="zh-sep" aria-hidden="true" />
+              <a href="https://www.zus.pl" target="_blank" rel="noreferrer" className="zh-kwadrat" title="Informacje dla osób niesłyszących" aria-label="Informacje dla osób niesłyszących (zus.pl)">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M7 9a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-5 2" /><path d="M10 9a2 2 0 1 1 4 0M4 20l3-3M3 16l2-2" /></svg>
+              </a>
+              <span className="zh-kwadrat-wrap"><PrzyciskDostepnosci ikona /></span>
+              <a href="https://bip.zus.pl" target="_blank" rel="noreferrer" className="zh-bip" aria-label="Biuletyn Informacji Publicznej"><span aria-hidden="true">◥</span>bip</a>
+              <a href="https://www.zus.pl" target="_blank" rel="noreferrer" className="zh-btn zh-btn-obrys">{t("Zarejestruj w PUE/eZUS")} <span aria-hidden="true">›</span></a>
+              <a href="https://www.zus.pl" target="_blank" rel="noreferrer" className="zh-btn zh-btn-pue">{t("Zaloguj do PUE/eZUS")} <span aria-hidden="true">›</span></a>
+              <Link to="/przewodnik" className="zh-btn zh-btn-przewodnik">{t("Zaloguj do Przewodnika Młodego Rodzica")} <span aria-hidden="true">›</span></Link>
+              <button type="button" className="zh-szukaj" aria-expanded={szukajOtwarte} onClick={() => setSzukajOtwarte((o) => !o)}>
+                <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="17" cy="17" r="15" /><circle cx="15.5" cy="15.5" r="6" /><path d="m20 20 5 5" /></svg>
+                <span>{t("Szukaj")}</span>
               </button>
-            </form>
+              <span className="zh-ue"><FlagaUE /><span>{t("Unia Europejska")}</span></span>
+            </div>
           )}
 
           {!bezMenu && <button
@@ -169,6 +169,18 @@ export default function Header({ bezMenu = false }) {
           </button>}
         </div>
       </div>
+
+      {!bezMenu && szukajOtwarte && (
+        <div className="zh-szukaj-pas">
+          <form className="wrap zus-header__search zh-szukaj-form" role="search" onSubmit={szukaj}>
+            <label htmlFor="zus-search" className="sr-only">Szukaj w serwisie</label>
+            <input id="zus-search" type="search" autoFocus placeholder="Czego szukasz? np. zasiłek macierzyński" value={fraza} onChange={(e) => setFraza(e.target.value)} />
+            <button type="submit" aria-label="Szukaj">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.2" /><path d="m16.2 16.2 4.3 4.3" /></svg>
+            </button>
+          </form>
+        </div>
+      )}
 
       {!bezMenu && <nav
         id="zus-navigation"

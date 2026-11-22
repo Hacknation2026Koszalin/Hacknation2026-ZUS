@@ -5,7 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSesja } from "../SesjaContext.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
 
-const CZAS_S = () => Number(sessionStorage.getItem("czas-sesji-s")) || 15 * 60;
+import { P } from "../parametry.js";
+
+const CZAS_S = () => Number(sessionStorage.getItem("czas-sesji-s")) || P.czasSesjiMin * 60;
 const OSTRZEZENIE_S = 60;
 export const KLUCZ_WYLOGOWANIA = "wylogowano-nieaktywnosc";
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;

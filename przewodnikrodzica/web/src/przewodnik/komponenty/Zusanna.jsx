@@ -2,6 +2,7 @@
 // W prototypie odpowiada z gotowej bazy (dopasowanie słów kluczowych) i zna Twoją sytuację z sesji.
 // Docelowo: model językowy + baza wiedzy ZUS, a w razie potrzeby umówienie e-wizyty.
 import { useEffect, useRef, useState } from "react";
+import { useJezyk } from "../jezyk.js";
 import { Link } from "react-router-dom";
 import { useSesja } from "../SesjaContext.jsx";
 import { DANE_ZUS_ZAPAS } from "../dane.js";
@@ -9,6 +10,7 @@ import { ocenSytuacje } from "../sytuacja.js";
 import { fmtDzien } from "../terminy.js";
 import { useNadchodzace } from "./Powiadomienia.jsx";
 import Ikona from "../wniosek/Ikona.jsx";
+import { P } from "../parametry.js";
 
 export const OTWORZ_ZUSANNE = "zusanna-otworz";
 const KLUCZ_DYMKA = "zusanna-dymek-zamkniety";
@@ -33,8 +35,8 @@ function odpowiedz(pytanie, { sytuacja, ankieta, terminy, zus }) {
       : { t: "Gdy dodasz termin porodu (albo datę urodzenia dziecka), policzę dokładne daty. Bez niej pokazuję terminy ustawowe w Twojej ścieżce.", link: ["Moja ścieżka", "/przewodnik/sciezka"] };
   if (ma("ile", "kwot", "pieniad", "wysokos", "procent", "81"))
     return sytuacja.swiadczenie === "rodzicielskie"
-      ? { t: "Bez ubezpieczenia chorobowego przysługuje Ci świadczenie rodzicielskie z gminy: 1000 zł miesięcznie przez rok." }
-      : { t: "Masz dwie opcje: 81,5% podstawy przez cały rok (wniosek do 21 dni po porodzie) albo 100% przez urlop macierzyński i 70% przez rodzicielski. Kalkulator policzy to w złotówkach.", link: ["Otwórz kalkulator", "/przewodnik/kalkulator"] };
+      ? { t: `Bez ubezpieczenia chorobowego przysługuje Ci świadczenie rodzicielskie z gminy: ${P.swiadczenieRodzicielskie} zł miesięcznie przez rok.` }
+      : { t: `Masz dwie opcje: ${String(P.stawki.wariant815).replace(".", ",")}% podstawy przez cały rok (wniosek do ${P.termin815Dni} dni po porodzie) albo ${P.stawki.macierzynski}% przez urlop macierzyński i ${P.stawki.rodzicielski}% przez rodzicielski. Kalkulator policzy to w złotówkach.`, link: ["Otwórz kalkulator", "/przewodnik/kalkulator"] };
   if (ma("ojcowsk", "tata", "ojciec"))
     return { t: "Urlop ojcowski to 2 tygodnie do 1. urodzin dziecka, zasiłek 100%. Wniosek do pracodawcy składasz co najmniej 7 dni przed urlopem. Tata ma też 9 tygodni urlopu rodzicielskiego tylko dla siebie." };
   if (ma("rodzicielsk"))
@@ -61,6 +63,7 @@ export default function Zusanna() {
   const terminy = useNadchodzace();
   const sytuacja = ocenSytuacje(ankieta, zus, etap);
   const [otwarte, setOtwarte] = useState(false);
+  const [, t] = useJezyk();
   const [dymek, setDymek] = useState(() => sessionStorage.getItem(KLUCZ_DYMKA) !== "1");
   const [tekst, setTekst] = useState("");
   const [pisze, setPisze] = useState(false);
@@ -123,7 +126,7 @@ export default function Zusanna() {
           </div>
           <form className="zs-pole" onSubmit={(e) => { e.preventDefault(); wyslij(tekst); }}>
             <label htmlFor="zs-input" className="sr-only">Napisz pytanie</label>
-            <input id="zs-input" ref={pole} value={tekst} onChange={(e) => setTekst(e.target.value)} placeholder="Zapytaj własnymi słowami…" autoComplete="off" />
+            <input id="zs-input" ref={pole} value={tekst} onChange={(e) => setTekst(e.target.value)} placeholder={t("Zapytaj własnymi słowami…")} autoComplete="off" />
             <button type="submit" aria-label="Wyślij" disabled={!tekst.trim()}><Ikona n="wyslij" rozmiar={18} /></button>
           </form>
           <p className="zs-uwaga">Odpowiedzi są uproszczone. Nie podawaj tu danych wrażliwych.</p>
@@ -135,8 +138,8 @@ export default function Zusanna() {
           <button type="button" className="zs-dymek-tresc" onClick={otworz}>
             <img src="/zusanna.jpg" alt="" className="zs-dymek-foto" />
             <span className="zs-dymek-tekst">
-              <b>Cześć! Jak mogę Ci pomóc?</b>
-              <span>Jestem ZUSanna, Twoja asystentka rodzica.</span>
+              <b>{t("Cześć")}! {t("Jak mogę Ci pomóc?")}</b>
+              <span>{t("Jestem ZUSanna, Twoja asystentka rodzica.")}</span>
             </span>
           </button>
           <button type="button" className="zs-dymek-x" onClick={zamknijDymek} aria-label="Ukryj powitanie">×</button>

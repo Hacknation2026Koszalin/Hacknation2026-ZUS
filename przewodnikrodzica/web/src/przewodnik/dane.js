@@ -39,12 +39,14 @@ export const ETAPY = [
 ];
 
 // Slajdy przewodnika powitalnego (po wyborze etapu)
+// Samouczek: każdy slajd ma zrzut ekranu z zaznaczonym miejscem (public/samouczek/*.png)
 export const SLAJDY = [
-  { id: "dane", ikona: "🗂️", tytul: "Twoje dane z ZUS", tekst: "Tu widzisz, czy masz ubezpieczenie chorobowe i od jakiej kwoty liczymy zasiłek.", mini: "Ubezpieczenie chorobowe ✓" },
-  { id: "sciezka", ikona: "🗓️", tytul: "Twoja ścieżka", tekst: "Oś czasu z terminami — nie przegapisz np. 21 dni na wniosek o zasiłek 81,5%.", mini: "Do 21 dni po porodzie: wniosek" },
-  { id: "kalkulator", ikona: "🧮", tytul: "Kalkulator", tekst: "Sprawdź, ile i jak długo dostaniesz — dla mamy, taty albo obojga.", mini: "5 627 zł / miesiąc" },
-  { id: "wsparcie", ikona: "📚", tytul: "Pomoc", tekst: "Wszystkie świadczenia i kontakty w jednym miejscu — opisane prostym językiem, z informacją, czy Ci przysługują.", mini: "Urlop rodzicielski — przysługuje" },
-  { id: "wniosek", ikona: "✍️", tytul: "Złóż wniosek", tekst: "Poprowadzimy Cię przez formularz pole po polu. Dane z mObywatela wpiszemy za Ciebie.", mini: "[ Złóż wniosek ]" },
-  { id: "sprawy", ikona: "📬", tytul: "Moje sprawy", tekst: "Tu sprawdzisz, co wysłałaś i na jakim etapie jest sprawa.", mini: "Wniosek ZAM — w trakcie" },
-  { id: "pomoc", ikona: "❓", tytul: "Pomoc zawsze pod ?", tekst: "Ten przewodnik, słowniczek i kontakt z ZUS znajdziesz pod ikoną ? w prawym górnym rogu.", mini: "?" },
+  { id: "konto", krotko: "Konto", tytul: "Moje konto", gdzie: "Menu → Moje konto", obraz: "/samouczek/konto.png", tekst: "Na górze widzisz licznik do najbliższego kroku i to, co trzeba zrobić. Niżej — status zwolnienia lekarskiego i skróty." },
+  { id: "sciezka", krotko: "Ścieżka", tytul: "Moja ścieżka", gdzie: "Menu → Moja ścieżka", obraz: "/samouczek/sciezka.png", tekst: "Oś czasu z terminami — nie przegapisz np. 21 dni na wniosek o zasiłek 81,5%. Odhaczaj, co już zrobione." },
+  { id: "swiadczenia", krotko: "Świadczenia", tytul: "Świadczenia", gdzie: "Menu → Świadczenia", obraz: "/samouczek/swiadczenia.png", tekst: "Wszystkie świadczenia opisane prostym językiem — przy każdym widzisz, czy Ci przysługuje." },
+  { id: "wniosek", krotko: "Wnioski", tytul: "Złóż wniosek", gdzie: "Menu → Złóż wniosek", obraz: "/samouczek/wnioski.png", tekst: "Wybierz formularz, a poprowadzimy Cię pole po polu. Podpowiemy też, czy składasz go u pracodawcy, czy w ZUS." },
+  { id: "kalkulator", krotko: "Kalkulator", tytul: "Kalkulator", gdzie: "Menu → Kalkulator", obraz: "/samouczek/kalkulator.png", tekst: "Sprawdź, ile i jak długo dostaniesz — dla mamy, taty albo obojga, także przy pracy na część etatu." },
+  { id: "sprawy", krotko: "Sprawy", tytul: "Moje sprawy", gdzie: "Menu → Moje sprawy", obraz: "/samouczek/sprawy.png", tekst: "Tu sprawdzisz, co wysłałaś/wysłałeś i na jakim etapie jest sprawa — u pracodawcy albo w ZUS." },
+  { id: "ikony", krotko: "Ikony", tytul: "Ikony w nagłówku", gdzie: "Prawy górny róg", obraz: "/samouczek/ikony.png", tekst: "Czas do wylogowania, powiadomienia o terminach, ustawienia (np. zmiana daty), ten samouczek pod „?” i ułatwienia dostępu." },
+  { id: "zusanna", krotko: "ZUSanna", tytul: "Zapytaj ZUSannę", gdzie: "Prawy dolny róg", obraz: "/samouczek/zusanna.png", tekst: "Masz pytanie? Napisz własnymi słowami — ZUSanna podpowie, a w razie potrzeby da kontakt do konsultanta." },
 ];

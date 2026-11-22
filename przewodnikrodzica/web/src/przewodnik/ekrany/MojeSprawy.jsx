@@ -8,7 +8,7 @@ import { ZAM } from "../wniosek/formularz.js";
 import { formularz } from "../wniosek/formularze/index.js";
 
 const polaDla = (w) => (formularz(w.typ) || ZAM).pola;
-import { STATUSY, pobierzWnioski } from "../wniosek/wnioski.js";
+import { statusDla, STATUSY, pobierzWnioski } from "../wniosek/wnioski.js";
 import Ikona from "../wniosek/Ikona.jsx";
 
 const fmt = (iso) => new Date(iso).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" });
@@ -47,13 +47,13 @@ export default function MojeSprawy() {
         )}
 
         {lista?.map((w) => {
-          const st = STATUSY[w.status] || STATUSY.u_urzednika;
+          const st = statusDla(w);
           return (
             <article key={w.numer} className="wn-karta sp-wniosek">
               <div className="sp-glowa">
                 <div>
                   <h2>{w.nazwa}</h2>
-                  <small>Nr sprawy <span className="wn-mono">{w.numer}</span> · złożono {fmt(w.zlozono)}</small>
+                  <small>Nr sprawy <span className="wn-mono">{w.numer}</span> · złożono {fmt(w.zlozono)} · {w.adresat === "pracodawca" ? `u pracodawcy (${w.adresatNazwa})` : w.adresat === "usc" ? "w urzędzie stanu cywilnego" : "w ZUS"}</small>
                 </div>
                 <span className={`wn-chip ${st.klasa}`}>{st.tekst}</span>
               </div>
@@ -96,7 +96,7 @@ export default function MojeSprawy() {
         })}
 
         <p className="sw-zrodlo">
-          <Link to="/przewodnik/urzednik">Tryb demo: otwórz widok urzędnika</Link> (najlepiej w drugiej karcie).
+          Tryb demo: <Link to="/przewodnik/urzednik">widok urzędnika ZUS</Link> albo <Link to="/przewodnik/pracodawca">widok pracodawcy (kadry)</Link> — najlepiej w drugiej karcie.
         </p>
       </div>
     </div>

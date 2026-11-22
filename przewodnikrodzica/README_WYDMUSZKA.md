@@ -180,3 +180,35 @@ Działa bez backendu (zapis w przeglądarce). Z backendem wnioski trzymane są w
 - Z-3, Z-3a, ZAS-15, ZAS-24, ZAS-40 wypełnia pracodawca/płatnik/lekarz — pokazujemy, jak o nie poprosić (z gotową treścią e-maila).
 - Polecane formularze wg etapu, roli i wieku. Numer sprawy ma prefiks formularza (np. ZZD-2026-…). Urzędnik i Moje sprawy obsługują każdy typ.
 - Nowy formularz = nowy obiekt w formularze/index.js (pola: radio, select, wielokrotny, tekst, obszar, liczba, data, pesel, plik, potwierdz, zgoda).
+
+## Zmiany v8
+- Menu konta jako hamburger na telefonie/tablecie (≤1000 px). Bez mini napisów nad tytułami.
+- Kwestionariusz: bez tekstu o danych ZUS, licznik „Krok X z N” na dole, więcej miejsca pod przyciskami.
+- Samouczek: 8 slajdów ze zrzutami (public/samouczek/*.png, zaznaczone miejsce) i oś 1–2–3. Zrzuty odtworzysz skryptem Playwright (zaznaczenie zielone).
+- Kreator: w trybie „prowadź mnie” jedno pole na nieruchomej scenie (strona się nie przewija); na końcu cały formularz do poprawy.
+- Świadczenia: świadczenie rehabilitacyjne, zasiłek w wysokości zasiłku macierzyńskiego (ZAS-55), panel „Twoje składki w ZUS” (stan na dzień powstania prawa + symulacja zaświadczenia).
+- Kalkulator: przy jednym rodzicu 32/34 tyg. rodzicielskiego (9 tyg. dla drugiego rodzica) + ostrzeżenie.
+- Pomoc: organizacje non-profit (wcześniak, hospicja perinatalne, strata dziecka) — swiadczenia.js → ORGANIZACJE.
+- Koniec umowy o pracę (Ustawienia): data + powód → karta na pulpicie (przedłużenie do porodu, ZAS-55, zasiłek po ustaniu).
+- Wnioski o urlopy do pracodawcy: URL-M, URL-R, URL-O, URL-W. Każdy formularz pokazuje: gdzie trafi (pracodawca/ZUS — wg liczby ubezpieczonych u płatnika), termin i dokumenty. Widok pracodawcy: /przewodnik/pracodawca.
+
+## Zmiany v9
+- USC-1: wniosek o odpis aktu urodzenia (skrócony / zupełny / wielojęzyczny), opłata skarbowa liczona na żywo (zwolnienie m.in. do spraw w ZUS), forma ePUAP / poczta / osobiście. Adresat: urząd stanu cywilnego (symulacja usługi gov.pl).
+- Panel administracyjny: /przewodnik/admin (Ustawienia → Tryb demonstracyjny → „Przełącz na panel administracyjny” albo link w stopce). Parametry w przewodnik/parametry.js: stawki, tygodnie urlopów, „Za życiem”, wiek dziecka przy adopcji, minimalne wynagrodzenie i próg zaległości, świadczenie rodzicielskie, czas sesji, włączanie funkcji, komunikat dla użytkowników. Data „obowiązuje od”, historia zmian, eksport/import JSON, podgląd skutków zmiany. W prototypie zapis w localStorage — docelowo API + logowanie pracownika ZUS.
+- Samouczek: bez górnego paska postępu, większe powitanie, mniejsze tytuły slajdów, więcej miejsca pod zrzutem.
+- Link PIP: pip.gov.pl/dla-pracodawcow/porady.
+
+## Zmiany v10
+- Pasek postępu formularza przykleja się pod menu (nie nad nim).
+- Przewodnik dla każdego świadczenia (ten sam układ co zasiłek macierzyński): przewodnik/przewodniki.js + ekrany/PrzewodnikSwiadczenia.jsx, trasa /przewodnik/swiadczenia/:id. Czytać może każdy; ramka „Dla Ciebie” pokazuje status.
+- „Na co uważać” (/przewodnik/ryzyka): utrata prawa, zmiana wysokości, terminy, które przepadają — z oznaczeniem „Dotyczy Ciebie”.
+- Ustawienia renderowane w <body> (nie chowają się pod nagłówkiem), nagłówek z „×” i przyciski zawsze widoczne.
+- Kalkulator w stylu reszty strony. Usunięty dopisek w stopce.
+
+## Zmiany v11
+- Nagłówek strony publicznej jak na zus.pl (Kontakt, język, dostępność, BIP, PUE/eZUS, Szukaj, UE) + zielony przycisk „Zaloguj do Przewodnika Młodego Rodzica”. Górny pasek usunięty.
+- Języki PL / ANG / UKR (przewodnik/jezyk.js): menu, nagłówki, pulpit, stopka, ZUSanna, główne strony. Przewodniki i formularze — na razie po polsku (komunikat).
+- Tryb „prowadź mnie”: znów cały formularz z przyciemnionym tłem i podświetlonym polem; stronę przesuwa tylko przewodnik (kółko myszy zablokowane).
+- SW-800: wniosek o 800+ (do ZUS, wypłata tylko na konto).
+- Kalkulator: od razu liczy z podstawy z ZUS, pigułki z ✓, suwaki z przyciskami −/+, zaznaczony wybrany przykład.
+- Poprawki: kółka osi wyśrodkowane, przycisk „Złóż wniosek” w przewodnikach, zielone linki i logo bez tła w stopce, bez „Nowość”, tekstów o hasłach i „według danych ZUS”.
